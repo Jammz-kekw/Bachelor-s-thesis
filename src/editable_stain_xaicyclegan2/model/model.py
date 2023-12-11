@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 import kornia
 from typing import Tuple, Union
 
@@ -70,6 +71,31 @@ def tanh_correction(x: TensorType) -> torch.Tensor:
     x_l = (B_L - A_L) * (x_l + 1) / 2 + A_L
     x_ab = (B_AB - A_AB) * (x_ab + 1) / 2 + A_AB
     return torch.cat((x_l, x_ab), dim=1)
+
+
+class ConvolutionalSelfAttention(torch.nn.Module):
+
+    def __init__(self, n_channels, reduction=8):
+        super(ConvolutionalSelfAttention, self).__init__()
+        (self.query,
+         self.key,
+         self.value) = [self._conv(n_channels, c) for c in (n_channels//reduction, n_channels//reduction, n_channels)]
+        self.gamma = torch.nn.Parameter(torch.tensor([0.]))
+
+    def _conv(self, n_in, n_out):
+        return torch.nn.utils.spectral_norm(torch.nn.Conv1d(n_in, n_out, kernel_size=1, bias=False))
+
+    def forward(self, skip, res):
+        size = skip.size()
+        x_skip = skip.view(*size[:2], -1)
+        x_res = res.view(*size[:2], -1)
+
+        f, g, h = self.query(x_skip), self.key(x_skip), self.value(x_res)
+
+        beta = F.softmax(torch.bmm(f.transpose(1,2), g), dim=1)
+        o = self.gamma * torch.bmm(h, beta) + x_skip
+        o = o.view(*size).contiguous()
+        return o.to(memory_format=torch.channels_last)
 
 
 class ConvBlock(torch.nn.Module):
@@ -174,12 +200,16 @@ class Generator(torch.nn.Module):
 
         # Decoder
         self.deconv1 = DeconvBlock(num_filter, num_filter // 2)
+        self.attention1 = ConvolutionalSelfAttention(num_filter, 8)
         num_filter //= 2
         self.deconv2 = DeconvBlock(num_filter, num_filter // 2)
+        self.attention2 = ConvolutionalSelfAttention(num_filter, 4)
         num_filter //= 2
         self.deconv3 = DeconvBlock(num_filter, num_filter // 2)
+        self.attention3 = ConvolutionalSelfAttention(num_filter, 2)
         num_filter //= 2
         self.deconv4 = ConvBlock(num_filter, num_filter, kernel_size=7, stride=1, padding=0)
+        self.attention4 = ConvolutionalSelfAttention(num_filter, 1)
         self.correction = ConvBlock(num_filter, num_filter, kernel_size=3, stride=1, padding=0,
                                     activation='no_act', batch_norm=False)
         self.final = ConvBlock(num_filter, output_dim, kernel_size=3, stride=1, padding=0,
@@ -194,8 +224,8 @@ class Generator(torch.nn.Module):
     def forward(self, img, mask=None):
         # Mask encoder
         if mask is not None:
-            inv_masked_img = torch.cat(((1 - mask) * img, (1 - mask).expand(img.size(0), -1, -1, -1)), 1) # context
-            imgx = torch.cat((mask*img, mask.expand(img.size(0), -1, -1, -1)), 1) # mask
+            inv_masked_img = torch.cat(((1 - mask) * img, (1 - mask).expand(img.size(0), -1, -1, -1)), 1)  # context
+            imgx = torch.cat((mask*img, mask.expand(img.size(0), -1, -1, -1)), 1)  # mask
 
             imgx = self.conv1dc(imgx)
             inv_masked_img = self.conv1dm(inv_masked_img)
@@ -215,10 +245,10 @@ class Generator(torch.nn.Module):
         self.res_out = res
 
         # Decoder
-        dec1 = self.deconv1(res + self.enc4)
-        dec2 = self.deconv2(dec1 + enc3)
-        dec3 = self.deconv3(dec2 + enc2)
-        dec4 = self.deconv4(self.pad(dec3 + enc1))
+        dec1 = self.deconv1(self.attention1(self.enc4, res))
+        dec2 = self.deconv2(self.attention2(dec1, enc3))
+        dec3 = self.deconv3(self.attention3(dec2, enc2))
+        dec4 = self.deconv4(self.pad(self.attention4(dec3, enc1)))
         out = self.correction(self.pad1(dec4))
         out = self.final(self.pad1(out))
 
