@@ -1,0 +1,10 @@
+.mnt
+/wandb/
+debug.py
+__pycache__/
+/src/settings_test.cfg
+/data/
+/.idea/
+/logs/
+/src/*.png
+/models/
