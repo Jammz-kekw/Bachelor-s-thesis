@@ -65,12 +65,22 @@ def joint_bilateral_blur(
 
 
 # correct the output of the network to be in the range of LAB values
-def tanh_correction(x: TensorType) -> torch.Tensor:
-    x_l = x[:, 0:1, :, :]
-    x_ab = x[:, 1:, :, :]
-    x_l = (B_L - A_L) * (x_l + 1) / 2 + A_L
-    x_ab = (B_AB - A_AB) * (x_ab + 1) / 2 + A_AB
-    return torch.cat((x_l, x_ab), dim=1)
+class TanhCorrection(torch.nn.Module):
+
+    def __init__(self, steepness=4):
+        super(TanhCorrection, self).__init__()
+        self.lumi_offset = torch.nn.Parameter(torch.tensor([1.]))
+        self.steepness = steepness
+
+    def steep_sig(self, x):
+        return 1 / (1 + torch.exp(-self.steepness * x))
+
+    def forward(self, x: TensorType) -> torch.Tensor:
+        x_l = x[:, 0:1, :, :]
+        x_ab = x[:, 1:, :, :]
+        x_l = (B_L - A_L) * (x_l + 1) / 2 + A_L
+        x_ab = (B_AB - A_AB) * (x_ab + 1) / 2 + A_AB
+        return torch.cat((x_l * self.steep_sig(self.lumi_offset), x_ab), dim=1)
 
 
 class ConvolutionalSelfAttention(torch.nn.Module):
@@ -92,10 +102,10 @@ class ConvolutionalSelfAttention(torch.nn.Module):
 
         f, g, h = self.query(x_skip), self.key(x_skip), self.value(x_res)
 
-        beta = F.softmax(torch.bmm(f.transpose(1,2), g), dim=1)
+        beta = F.softmax(torch.bmm(f.transpose(1, 2), g), dim=1)
         o = self.gamma * torch.bmm(h, beta) + x_skip
-        o = o.view(*size).contiguous()
-        return o.to(memory_format=torch.channels_last)
+        o = o.view(*size)
+        return o
 
 
 class ConvBlock(torch.nn.Module):
@@ -170,10 +180,8 @@ class Generator(torch.nn.Module):
         super(Generator, self).__init__()
 
         # Mask encoder
-        self.conv1dc = ConvBlock(input_dim * 2, input_dim, kernel_size=1, stride=1, padding=0, activation='no_act',
-                                 batch_norm=False)
-        self.conv1dm = ConvBlock(input_dim * 2, input_dim, kernel_size=1, stride=1, padding=0, activation='no_act',
-                                 batch_norm=False)
+        self.conv1dc = ConvBlock(input_dim * 2, input_dim, kernel_size=1, stride=1, padding=0, activation='no_act', batch_norm=False)
+        self.conv1dm = ConvBlock(input_dim * 2, input_dim, kernel_size=1, stride=1, padding=0, activation='no_act', batch_norm=False)
         
         self.interpretable_conv_1 = ConvBlock(input_dim, num_filter//2, kernel_size=1, stride=1, padding=0)
         self.interpretable_conv_2 = ConvBlock(num_filter//2, num_filter//2, kernel_size=1, stride=1, padding=0)
@@ -200,16 +208,16 @@ class Generator(torch.nn.Module):
 
         # Decoder
         self.deconv1 = DeconvBlock(num_filter, num_filter // 2)
-        self.attention1 = ConvolutionalSelfAttention(num_filter, 8)
+        self.attention1 = ConvolutionalSelfAttention(num_filter, 64)
         num_filter //= 2
         self.deconv2 = DeconvBlock(num_filter, num_filter // 2)
-        self.attention2 = ConvolutionalSelfAttention(num_filter, 4)
+        self.attention2 = ConvolutionalSelfAttention(num_filter, 32)
         num_filter //= 2
         self.deconv3 = DeconvBlock(num_filter, num_filter // 2)
-        self.attention3 = ConvolutionalSelfAttention(num_filter, 2)
+        #self.attention3 = ConvolutionalSelfAttention(num_filter, 16)
         num_filter //= 2
         self.deconv4 = ConvBlock(num_filter, num_filter, kernel_size=7, stride=1, padding=0)
-        self.attention4 = ConvolutionalSelfAttention(num_filter, 1)
+        #self.attention4 = ConvolutionalSelfAttention(num_filter, 16)
         self.correction = ConvBlock(num_filter, num_filter, kernel_size=3, stride=1, padding=0,
                                     activation='no_act', batch_norm=False)
         self.final = ConvBlock(num_filter, output_dim, kernel_size=3, stride=1, padding=0,
@@ -217,6 +225,7 @@ class Generator(torch.nn.Module):
 
         self.unsharp_filter = kornia.filters.UnsharpMask((5, 5), (1.5, 1.5))
         self.guided_blur = lambda inp, gui: joint_bilateral_blur(inp, gui, (5, 5), 0.1, (1.5, 1.5))
+        self.tanh_corr = TanhCorrection()
 
         self.enc4 = None
         self.res_out = None
@@ -247,12 +256,12 @@ class Generator(torch.nn.Module):
         # Decoder
         dec1 = self.deconv1(self.attention1(self.enc4, res))
         dec2 = self.deconv2(self.attention2(dec1, enc3))
-        dec3 = self.deconv3(self.attention3(dec2, enc2))
-        dec4 = self.deconv4(self.pad(self.attention4(dec3, enc1)))
+        dec3 = self.deconv3(dec2 + enc2)
+        dec4 = self.deconv4(self.pad(dec3 + enc1))
         out = self.correction(self.pad1(dec4))
         out = self.final(self.pad1(out))
 
-        out = tanh_correction(out)
+        out = self.tanh_corr(out)
 
         if mask is not None:
             # noinspection PyUnboundLocalVariable
@@ -301,7 +310,7 @@ class Generator(torch.nn.Module):
         img = self.deconv4(self.pad(img + enc1))
         img = self.correction(self.pad1(img))
         img = self.final(self.pad1(img))
-        img = tanh_correction(img)
+        img = self.tanh_corr(img)
         img = img + mask_codes
         img = self.guided_blur(img, original)
         img = self.unsharp_filter(img)

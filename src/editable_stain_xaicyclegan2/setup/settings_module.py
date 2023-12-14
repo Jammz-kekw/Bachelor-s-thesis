@@ -25,11 +25,15 @@ class Settings:
 
     # Data location
     model_root: str
+    data_source: str
     data_root: str
     data_train_he: str
     data_train_p63: str
     data_test_he: str
     data_test_p63: str
+    test_he: str
+    test_p63: str
+    macenko_target: str
     size: int
     crop: int
     flip_vertical: bool

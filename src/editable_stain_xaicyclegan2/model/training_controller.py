@@ -440,8 +440,8 @@ class TrainingController:
 
     # evaluation step
     def get_image_pairs(self):
-        real_he = self.test_he_data.get_random_image()
-        real_p63 = self.test_p63_data.get_random_image()
+        real_he = self.test_he_data.get_sequential_image()
+        real_p63 = self.test_p63_data.get_sequential_image()
 
         real_he = Variable(real_he.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)
         real_p63 = Variable(real_p63.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)

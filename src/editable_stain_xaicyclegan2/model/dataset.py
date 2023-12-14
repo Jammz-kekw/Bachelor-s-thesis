@@ -96,6 +96,7 @@ class DatasetFromFolder(data.Dataset):
 
         self.input_path = os.path.join(image_dir, sub_folder)
         self.image_filenames = [x for x in sorted(os.listdir(self.input_path))]
+        self.seq = 0
         self.resize = resize
         self.crop_size = crop_size
         self.flip_h = flip_h
@@ -149,3 +150,10 @@ class DatasetFromFolder(data.Dataset):
 
     def get_random_image(self):
         return self.__getitem__(random.randint(0, len(self.image_filenames) - 1))
+
+    def get_sequential_image(self):
+        img = self.__getitem__(self.seq)
+        self.seq += 1
+        if self.seq >= len(self.image_filenames):
+            self.seq = 0
+        return img
