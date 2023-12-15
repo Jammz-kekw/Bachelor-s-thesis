@@ -1,4 +1,5 @@
 import kornia
+import torch
 
 
 # Use only if max_length >= 3000 or .mean often, otherwise use RunningMeanStack
@@ -82,7 +83,7 @@ class RunningMeanStack(list):
 
 
 # return image to normal rgb appearance and value range
-def normalize_image(img):
+def normalize_image(img, return_numpy=True, squeeze=True, permute=True):
     img = img.cpu().detach()
 
     # l_mean: float = 50, l_std: float = 29.59, ab_mean: float = 0, ab_std: float = 74.04
@@ -96,5 +97,15 @@ def normalize_image(img):
     img[0, 2] = img[0, 2].clamp(-128, 127)
 
     img = kornia.color.lab_to_rgb(img)
-    img = (img.squeeze(0).permute(1, 2, 0).numpy() * 255).astype('uint8')
-    return img
+    img *= 255
+
+    if permute:
+        img = img.permute(0, 2, 3, 1)
+
+    if squeeze:
+        img = img.squeeze(0)
+
+    if return_numpy:
+        return img.numpy().astype('uint8')
+    else:
+        return img.type(torch.uint8)

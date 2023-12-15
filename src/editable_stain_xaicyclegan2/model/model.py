@@ -242,7 +242,7 @@ class Generator(torch.nn.Module):
             imgx = self.interpretable_conv_1(imgx)
             imgx = self.interpretable_conv_2(imgx)
         else:
-            imgx = img
+            imgx = self.interpretable_conv_2(self.interpretable_conv_1(img))
 
         enc1 = self.conv1(self.pad(imgx))  # (bs, num_filter, 128, 128)
         enc2 = self.conv2(enc1)  # (bs, num_filter * 2, 64, 64)

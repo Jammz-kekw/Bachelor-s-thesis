@@ -23,7 +23,7 @@ TensorType = Union[Variable, torch.Tensor]
 
 class TrainingController:
 
-    def __init__(self, settings: Settings, wandb_module: WandbModule):
+    def __init__(self, settings: Settings | None, wandb_module: WandbModule | None, saved_model_obj: dict = None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.settings = settings
         self.wandb_module = wandb_module
@@ -35,6 +35,9 @@ class TrainingController:
         self.latest_cycle_loss = None
         self.latest_context_loss = None
         self.latest_cycle_context_loss = None
+
+        if saved_model_obj:
+            settings = saved_model_obj['settings']
 
         # region Initialize data loaders
         self.train_he_data = DatasetFromFolder(settings.data_root, settings.data_train_he, settings.norm_dict)
@@ -57,6 +60,7 @@ class TrainingController:
         # region Initialize models
         generator_params = (settings.generator_downconv_filters, settings.num_resnet_blocks, settings.channels, settings.channels)
         discriminator_params = (settings.discriminator_downconv_filters, settings.channels)
+
         self.generator_he_to_p63 = Generator(*generator_params)
         self.generator_p63_to_he = Generator(*generator_params)
         self.discriminator_he = Discriminator(*discriminator_params)
@@ -64,29 +68,45 @@ class TrainingController:
         self.discriminator_he_mask = Discriminator(*discriminator_params)
         self.discriminator_p63_mask = Discriminator(*discriminator_params)
 
-        self.generator_he_to_p63.to(self.device).to(memory_format=torch.channels_last)
-        self.generator_p63_to_he.to(self.device).to(memory_format=torch.channels_last)
-        self.discriminator_he.to(self.device).to(memory_format=torch.channels_last)
-        self.discriminator_p63.to(self.device).to(memory_format=torch.channels_last)
-        self.discriminator_he_mask.to(self.device).to(memory_format=torch.channels_last)
-        self.discriminator_p63_mask.to(self.device).to(memory_format=torch.channels_last)
+        if saved_model_obj:
+            self.generator_he_to_p63.load_state_dict(saved_model_obj['generator_he_to_p63_state_dict'])
+            self.generator_p63_to_he.load_state_dict(saved_model_obj['generator_p63_to_he_state_dict'])
+            self.discriminator_he.load_state_dict(saved_model_obj['discriminator_he_state_dict'])
+            self.discriminator_p63.load_state_dict(saved_model_obj['discriminator_p63_state_dict'])
+            self.discriminator_he_mask.load_state_dict(saved_model_obj['discriminator_he_mask_state_dict'])
+            self.discriminator_p63_mask.load_state_dict(saved_model_obj['discriminator_p63_mask_state_dict'])
+
+            self.generator_he_to_p63.eval()
+            self.generator_p63_to_he.eval()
+            self.discriminator_he.eval()
+            self.discriminator_p63.eval()
+            self.discriminator_he_mask.eval()
+            self.discriminator_p63_mask.eval()
+
+        self.generator_he_to_p63.to(self.device).to(memory_format=torch.channels_last)  # noqa
+        self.generator_p63_to_he.to(self.device).to(memory_format=torch.channels_last)  # noqa
+        self.discriminator_he.to(self.device).to(memory_format=torch.channels_last)  # noqa
+        self.discriminator_p63.to(self.device).to(memory_format=torch.channels_last)  # noqa
+        self.discriminator_he_mask.to(self.device).to(memory_format=torch.channels_last)  # noqa
+        self.discriminator_p63_mask.to(self.device).to(memory_format=torch.channels_last)  # noqa
         # endregion
 
         # region Initialize wandb model watching
-        if torch.multiprocessing.current_process().name == 'MainProcess':
-            self.wandb_module.run.watch(
-                (
-                    self.generator_he_to_p63,
-                    self.generator_p63_to_he,
-                    self.discriminator_he,
-                    self.discriminator_he_mask,
-                    self.discriminator_p63,
-                    self.discriminator_p63_mask
-                ),
-                log="all",
-                log_freq=wandb_module.log_frequency,
-                log_graph=True
-            )
+        if saved_model_obj is None:
+            if torch.multiprocessing.current_process().name == 'MainProcess':
+                self.wandb_module.run.watch(
+                    (
+                        self.generator_he_to_p63,
+                        self.generator_p63_to_he,
+                        self.discriminator_he,
+                        self.discriminator_he_mask,
+                        self.discriminator_p63,
+                        self.discriminator_p63_mask
+                    ),
+                    log="all",
+                    log_freq=wandb_module.log_frequency,
+                    log_graph=True
+                )
         # endregion
 
         # region Initialize explanation classes
@@ -116,48 +136,50 @@ class TrainingController:
         # endregion
 
         # region Initialize optimizers
-        discriminator_he_params = itertools.chain(
-            self.discriminator_he.parameters(),
-            self.discriminator_he_mask.parameters()
-        )
+        if saved_model_obj is None:
+            discriminator_he_params = itertools.chain(
+                self.discriminator_he.parameters(),
+                self.discriminator_he_mask.parameters()
+            )
 
-        discriminator_p63_params = itertools.chain(
-            self.discriminator_p63.parameters(),
-            self.discriminator_p63_mask.parameters()
-        )
+            discriminator_p63_params = itertools.chain(
+                self.discriminator_p63.parameters(),
+                self.discriminator_p63_mask.parameters()
+            )
 
-        self.generator_optimizer = torch.optim.NAdam(
-            itertools.chain(self.generator_he_to_p63.parameters(), self.generator_p63_to_he.parameters()),
-            lr=settings.lr_generator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
-        )
+            self.generator_optimizer = torch.optim.NAdam(
+                itertools.chain(self.generator_he_to_p63.parameters(), self.generator_p63_to_he.parameters()),
+                lr=settings.lr_generator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
+            )
 
-        self.discriminator_he_optimizer = torch.optim.NAdam(
-            discriminator_he_params,
-            lr=settings.lr_discriminator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
-        )
+            self.discriminator_he_optimizer = torch.optim.NAdam(
+                discriminator_he_params,
+                lr=settings.lr_discriminator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
+            )
 
-        self.discriminator_p63_optimizer = torch.optim.NAdam(
-            discriminator_p63_params,
-            lr=settings.lr_discriminator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
-        )
+            self.discriminator_p63_optimizer = torch.optim.NAdam(
+                discriminator_p63_params,
+                lr=settings.lr_discriminator, betas=(settings.beta1, settings.beta2), weight_decay=0.001, decoupled_weight_decay=True
+            )
 
-        self.lr_generator_scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.generator_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
-        )
+            self.lr_generator_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                self.generator_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
+            )
 
-        self.lr_discriminator_he_scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.discriminator_he_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
-        )
+            self.lr_discriminator_he_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                self.discriminator_he_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
+            )
 
-        self.lr_discriminator_p63_scheduler = torch.optim.lr_scheduler.LambdaLR(
-            self.discriminator_p63_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
-        )
+            self.lr_discriminator_p63_scheduler = torch.optim.lr_scheduler.LambdaLR(
+                self.discriminator_p63_optimizer, lr_lambda=LambdaLR(settings.epochs, settings.decay_epoch).step
+            )
         # endregion
 
         # region Initialize image pool
-        pool_size = settings.pool_size
-        self.fake_he_pool = ImagePool(pool_size)
-        self.fake_p63_pool = ImagePool(pool_size)
+        if saved_model_obj is None:
+            pool_size = settings.pool_size
+            self.fake_he_pool = ImagePool(pool_size)
+            self.fake_p63_pool = ImagePool(pool_size)
         # endregion
 
     # general function to get loss based on chosen criterion
@@ -228,13 +250,7 @@ class TrainingController:
         real_he = real_he[:min_dim]
         real_p63 = real_p63[:min_dim]
 
-        mask_he = get_mask(real_he, self.settings.mask_type)
-        mask_p63 = get_mask(real_p63, self.settings.mask_type)
-
-        real_he = Variable(real_he.to(self.device).to(memory_format=torch.channels_last))
-        real_p63 = Variable(real_p63.to(self.device).to(memory_format=torch.channels_last))
-        mask_he = Variable(mask_he.to(self.device).to(memory_format=torch.channels_last))
-        mask_p63 = Variable(mask_p63.to(self.device).to(memory_format=torch.channels_last))
+        (real_he, mask_he), (real_p63, mask_p63) = self.get_dummies(real_he, real_p63)
 
         # cast to bfloat16 for forward pass, it's faster
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
@@ -459,3 +475,23 @@ class TrainingController:
         reconstructed_p63 = self.generator_he_to_p63(fake_he, real_p63_mask)
 
         return (real_he, real_p63), (fake_he, fake_p63), (reconstructed_he, reconstructed_p63)
+
+    def get_dummies(self, real_he, real_p63) -> tuple[tuple[TensorType, TensorType], tuple[TensorType, TensorType]]:
+        real_he = Variable(real_he.to(self.device).to(memory_format=torch.channels_last))
+        real_p63 = Variable(real_p63.to(self.device).to(memory_format=torch.channels_last))
+        mask_he = get_mask(real_he, self.settings.mask_type)
+        mask_p63 = get_mask(real_p63, self.settings.mask_type)
+        mask_he = Variable(mask_he.to(self.device).to(memory_format=torch.channels_last))
+        mask_p63 = Variable(mask_p63.to(self.device).to(memory_format=torch.channels_last))
+
+        return (real_he, mask_he), (real_p63, mask_p63)
+
+    def eval_step(self, real_he: TensorType, real_p63: TensorType):
+        (real_he, mask_he), (real_p63, mask_p63) = self.get_dummies(real_he, real_p63)
+
+        fake_p63 = self.generator_he_to_p63(real_he, mask_he)
+        fake_he = self.generator_p63_to_he(real_p63, mask_p63)
+        cycled_he = self.generator_p63_to_he(fake_p63, mask_he)
+        cycled_p63 = self.generator_he_to_p63(fake_he, mask_p63)
+
+        return fake_he, cycled_he, fake_p63, cycled_p63

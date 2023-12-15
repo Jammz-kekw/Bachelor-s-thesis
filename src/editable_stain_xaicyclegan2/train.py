@@ -8,6 +8,26 @@ from editable_stain_xaicyclegan2.setup.settings_module import Settings
 from editable_stain_xaicyclegan2.setup.wandb_module import WandbModule
 
 
+def save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix="", suffix=""):
+    torch.save({
+        'epoch': epoch,
+        'wandb_step': wandb_module.step,
+        'generator_he_to_p63_state_dict': training_controller.generator_he_to_p63.state_dict(),
+        'generator_p63_to_he_state_dict': training_controller.generator_p63_to_he.state_dict(),
+        'discriminator_he_state_dict': training_controller.discriminator_he.state_dict(),
+        'discriminator_p63_state_dict': training_controller.discriminator_p63.state_dict(),
+        'discriminator_he_mask_state_dict': training_controller.discriminator_he_mask.state_dict(),
+        'discriminator_p63_mask_state_dict': training_controller.discriminator_p63_mask.state_dict(),
+        'generator_optimizer_state_dict': training_controller.generator_optimizer.state_dict(),
+        'discriminator_he_optimizer_state_dict': training_controller.discriminator_he_optimizer.state_dict(),
+        'discriminator_p63_optimizer_state_dict': training_controller.discriminator_p63_optimizer.state_dict(),
+        'generator_loss': training_controller.latest_generator_loss,
+        'discriminator_he_loss': training_controller.latest_discriminator_he_loss,
+        'discriminator_p63_loss': training_controller.latest_discriminator_p63_loss,
+        'settings': settings
+    }, f=os.path.join(model_dir, f'{prefix}model_checkpoint{suffix}.pth'))
+
+
 def main():
     # settings = Settings('settings_test.cfg')
     settings = Settings('settings.cfg')
@@ -31,27 +51,6 @@ def main():
     else:
         exit(1)
     model_step = 0
-
-    def export_model_to_onnx(model, output_path, dummy_input):
-        """
-        Exports a given PyTorch model to ONNX format.
-
-        Parameters:
-        - model: The PyTorch model to be exported.
-        - output_path: The path and name of the output ONNX file.
-        - settings: The settings module, which contains the batch size.
-        - dummy_input: A dummy input tensor that matches the input shape the model expects.
-        """
-
-        # Ensure the model is in evaluation mode
-        model.eval()
-
-        # Export the model
-        torch.onnx.export(model, dummy_input, output_path,
-                          export_params=True, opset_version=10,
-                          do_constant_folding=True,
-                          input_names=['input'], output_names=['output'],
-                          dynamic_axes={'input': {0: 'batch_size'}, 'output': {0: 'batch_size'}})
 
     for epoch in range(settings.epochs):
         # Iterate over the dataset
@@ -78,43 +77,15 @@ def main():
 
                 # Save model checkpoint
                 if wandb_module.step % settings.checkpoint_frequency_steps == 0:
-                    torch.save({
-                        'epoch': epoch,
-                        'wandb_step': wandb_module.step,
-                        'generator_he_to_p63_state_dict': training_controller.generator_he_to_p63.state_dict(),
-                        'generator_p63_to_he_state_dict': training_controller.generator_p63_to_he.state_dict(),
-                        'discriminator_he_state_dict': training_controller.discriminator_he.state_dict(),
-                        'discriminator_p63_state_dict': training_controller.discriminator_p63.state_dict(),
-                        'discriminator_he_mask_state_dict': training_controller.discriminator_he_mask.state_dict(),
-                        'discriminator_p63_mask_state_dict': training_controller.discriminator_p63_mask.state_dict(),
-                        'generator_optimizer_state_dict': training_controller.generator_optimizer.state_dict(),
-                        'discriminator_he_optimizer_state_dict': training_controller.discriminator_he_optimizer.state_dict(),
-                        'discriminator_p63_optimizer_state_dict': training_controller.discriminator_p63_optimizer.state_dict(),
-                        'generator_loss': training_controller.latest_generator_loss,
-                        'discriminator_he_loss': training_controller.latest_discriminator_he_loss,
-                        'discriminator_p63_loss': training_controller.latest_discriminator_p63_loss,
-                    }, f=os.path.join(model_dir, f'model_checkpoint.pth'))
+                    save_model(epoch, model_dir, training_controller, wandb_module, settings)
                     model_step += 1
+
     # check if real_he and real_p63 exist in memory. We can't reference them directly by variable name since they may be undefined.
     if 'real_he' not in locals() or 'real_p63' not in locals():
         exit(1)
+
     # Export the generator_he_to_p63 model
-    export_model_to_onnx(model=training_controller.generator_he_to_p63,
-                         output_path=os.path.join(model_dir, f'generator_he_to_p63.onnx'),
-                         dummy_input=real_he)  # noqa
-    # Export the generator_p63_to_he model
-    export_model_to_onnx(model=training_controller.generator_p63_to_he,
-                         output_path=os.path.join(model_dir, f'generator_p63_to_he.onnx'),
-                         dummy_input=real_p63)  # noqa
-    # Export the discriminator_he model
-    export_model_to_onnx(model=training_controller.discriminator_he,
-                         output_path=os.path.join(model_dir, f'discriminator_he.onnx'),
-                         dummy_input=real_he)  # noqa
-    # Export the discriminator_p63 model
-    export_model_to_onnx(model=training_controller.discriminator_p63,
-                         output_path=os.path.join(model_dir, f'discriminator_p63.onnx'),
-                         dummy_input=real_p63)  # noqa
-    # Repeat the above steps for any other models and adjust dummy inputs accordingly.
+    save_model(0, model_dir, training_controller, wandb_module, settings, prefix="final_")
 
 
 if __name__ == "__main__":

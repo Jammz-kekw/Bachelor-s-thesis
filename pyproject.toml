@@ -11,6 +11,7 @@ python = "^3.11"
 #torch = {version = "^2.1.1", source = "torch"} Might need to install these with pip
 #torchvision = {version = "^0.16.1", source = "torchvision"}
 #torchaudio = {version = "^2.1.1", source = "torchaudio"}
+torchmetrics = {version="^1.2.1", extras=["image"]}
 captum = "^0.7.0"
 streamlit = "^1.29.0"
 kornia = "^0.7.0"

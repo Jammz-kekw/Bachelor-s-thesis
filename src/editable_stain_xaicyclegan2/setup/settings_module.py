@@ -31,6 +31,8 @@ class Settings:
     data_train_p63: str
     data_test_he: str
     data_test_p63: str
+    data_gen_he: str
+    data_gen_p63: str
     test_he: str
     test_p63: str
     macenko_target: str
