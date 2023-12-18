@@ -12,8 +12,8 @@ echo "Using GPU devices: ${DEVICE}"
 
 
 docker run \
-    -it --rm \
-    --name "xaicyclegan" \
+    -d \
+    --name "editable-stain-xaicyclegan2" \
     --gpus all \
     --privileged \
     --shm-size 8g \

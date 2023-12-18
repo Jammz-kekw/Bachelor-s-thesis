@@ -15,5 +15,5 @@ WORKDIR /setup
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-WORKDIR /workspace/xaicyclegan
+WORKDIR /workspace/editable-stain-xaicyclegan2
 
