@@ -11,9 +11,13 @@ from editable_stain_xaicyclegan2.setup.settings_module import Settings
 
 if __name__ == '__main__':
     num_exp = input("Enter experiment number or label: ").upper() or "X"
-
-    saved_params = torch.load(f'models/Experiment {num_exp}/final_model_checkpoint.pth')
-    training_controller = TrainingController(None, None, saved_params)
+    
+    try:
+        saved_params = torch.load(f'.mnt/scratch/models/Experiment {num_exp}/final_model_checkpoint.pth')
+    except FileNotFoundError:
+        saved_params = torch.load(f'.mnt/scratch/models/Experiment {num_exp}/9_model_checkpoint.pth')
+    
+    training_controller = TrainingController(Settings('settings.cfg'), None, saved_params)
 
     ssim = StructuralSimilarityIndexMeasure(data_range=1.0).to('cuda')
     psnr = PeakSignalNoiseRatio(data_range=1.0).to('cuda')
@@ -75,6 +79,8 @@ if __name__ == '__main__':
         'mifid_he': mifid_he.compute().cpu().numpy(),
         'mifid_p63': mifid_p63.compute().cpu().numpy()
     })
+    
+    print(df)
 
     # save dataframe to csv
-    df.to_csv(f'models/Experiment {num_exp}/metrics.csv', index=False)
+    df.to_csv(f'.mnt/scratch/models/Experiment {num_exp}/metrics.csv', index=False)

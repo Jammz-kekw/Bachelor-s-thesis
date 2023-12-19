@@ -255,19 +255,19 @@ class TrainingController:
         # cast to bfloat16 for forward pass, it's faster
         with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
             fake_p63 = self.generator_he_to_p63(real_he, mask_he)
-
-            encoded_he_in_he_to_p63 = self.generator_he_to_p63.enc4
-
-            fake_he = self.generator_p63_to_he(real_p63, mask_p63)
-
-            encoded_p63_in_p63_to_he = self.generator_p63_to_he.enc4
-
             cycled_he = self.generator_p63_to_he(fake_p63, mask_he)
 
+            encoded_he_in_he_to_p63 = self.generator_he_to_p63.enc4
+            converted_fp63_in_p63_to_he = self.generator_p63_to_he.res_out
+            converted_he_in_he_to_p63 = self.generator_he_to_p63.res_out
             encoded_fp63_in_p63_to_he = self.generator_p63_to_he.enc4
 
+            fake_he = self.generator_p63_to_he(real_p63, mask_p63)
             cycled_p63 = self.generator_he_to_p63(fake_he, mask_p63)
-
+            
+            encoded_p63_in_p63_to_he = self.generator_p63_to_he.enc4
+            converted_fhe_in_he_to_p63 = self.generator_he_to_p63.res_out
+            converted_p63_in_p63_to_he = self.generator_p63_to_he.res_out
             encoded_fhe_in_he_to_p63 = self.generator_he_to_p63.enc4
 
             # set explanations
@@ -318,22 +318,18 @@ class TrainingController:
             # identity loss
             identity_he = self.criterion_pixel_wise(real_he, self.generator_p63_to_he(real_he, mask_he))
 
-            encoded_he_in_p63_to_he = self.generator_p63_to_he.res_out
-
             identity_p63 = self.criterion_pixel_wise(real_p63, self.generator_he_to_p63(real_p63, mask_p63))
-
-            encoded_p63_in_he_to_p63 = self.generator_he_to_p63.res_out
 
             identity_loss = (identity_he + identity_p63) * self.settings.lambda_identity
 
-            context_loss = torch.nn.functional.huber_loss(encoded_he_in_he_to_p63, encoded_he_in_p63_to_he) + \
-                torch.nn.functional.huber_loss(encoded_p63_in_p63_to_he, encoded_p63_in_he_to_p63)
+            context_loss = torch.nn.functional.huber_loss(encoded_he_in_he_to_p63, converted_fp63_in_p63_to_he) + \
+                torch.nn.functional.huber_loss(converted_he_in_he_to_p63, encoded_fp63_in_p63_to_he)
 
             context_loss /= 2
             context_loss *= self.settings.lambda_context
 
-            cycle_context_loss = torch.nn.functional.huber_loss(encoded_fp63_in_p63_to_he, encoded_he_in_he_to_p63) + \
-                torch.nn.functional.huber_loss(encoded_fhe_in_he_to_p63, encoded_p63_in_p63_to_he)
+            cycle_context_loss = torch.nn.functional.huber_loss(encoded_p63_in_p63_to_he, converted_fhe_in_he_to_p63) + \
+                torch.nn.functional.huber_loss(converted_p63_in_p63_to_he, encoded_fhe_in_he_to_p63)
 
             cycle_context_loss /= 2
             cycle_context_loss *= self.settings.lambda_cycle_context

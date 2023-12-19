@@ -77,7 +77,7 @@ def main():
 
                 # Save model checkpoint
                 if wandb_module.step % settings.checkpoint_frequency_steps == 0:
-                    save_model(epoch, model_dir, training_controller, wandb_module, settings, suffix=f"_{model_step}")
+                    save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix=f"{model_step}_")
                     model_step += 1
 
     # check if real_he and real_p63 exist in memory. We can't reference them directly by variable name since they may be undefined.
