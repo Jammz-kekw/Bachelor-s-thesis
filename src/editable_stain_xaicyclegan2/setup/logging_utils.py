@@ -1,5 +1,7 @@
 import kornia
+import numpy as np
 import torch
+from PIL import Image
 
 
 # Use only if max_length >= 3000 or .mean often, otherwise use RunningMeanStack
@@ -83,7 +85,9 @@ class RunningMeanStack(list):
 
 
 # return image to normal rgb appearance and value range
-def normalize_image(img, return_numpy=True, squeeze=True, permute=True):
+def normalize_image(img, return_numpy: bool = True, squeeze: bool = True,
+                    permute: bool | tuple[int, int, int, int] = True,
+                    channel_reorder: tuple = None):
     img = img.cpu().detach()
 
     # l_mean: float = 50, l_std: float = 29.59, ab_mean: float = 0, ab_std: float = 74.04
@@ -99,8 +103,14 @@ def normalize_image(img, return_numpy=True, squeeze=True, permute=True):
     img = kornia.color.lab_to_rgb(img)
     img *= 255
 
+    if channel_reorder:
+        img = img[:, channel_reorder, :, :]
+
     if permute:
-        img = img.permute(0, 2, 3, 1)
+        if isinstance(permute, tuple):
+            img = img.permute(*permute)
+        else:
+            img = img.permute(0, 2, 3, 1)
 
     if squeeze:
         img = img.squeeze(0)
@@ -109,3 +119,16 @@ def normalize_image(img, return_numpy=True, squeeze=True, permute=True):
         return img.numpy().astype('uint8')
     else:
         return img.type(torch.uint8)
+
+
+def load_img_numpy(img_path, channel_reorder: tuple[int, int, int] | None = None):
+    img = Image.open(img_path)
+    img = np.array(img)
+
+    if img.shape[2] == 4:
+        img = img[:, :, :3]
+
+    if channel_reorder:
+        img = img[:, :, channel_reorder]
+
+    return img

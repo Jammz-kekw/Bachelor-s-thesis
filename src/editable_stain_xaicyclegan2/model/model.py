@@ -292,20 +292,17 @@ class Generator(torch.nn.Module):
 
         return imgx, inv_masked_img
 
-    def get_modified_rest_pass(self, original, codes, mask_codes, eigen, mod=3000, ranges=(0, 1)):
-        new_codes = codes.clone().T
-        for i in ranges:
-            new_codes += eigen[i:i + 1].T * mod
-
-        new_codes = new_codes.T
+    def get_modified_rest_pass(self, original, codes, mask_codes, eigen):  # very inefficient way to do this, better to have a func (but we were lazy)
+        new_codes = codes.clone()
+        new_codes = torch.einsum('lkji,nk->nkji', new_codes, eigen).sum(0, keepdim=True).add(new_codes)
 
         enc1 = self.conv1(self.pad(new_codes))
         enc2 = self.conv2(enc1)
         enc3 = self.conv3(enc2)
         enc4 = self.conv4(enc3)
         img = self.resnet_blocks(enc4)
-        img = self.deconv1(img + enc4)
-        img = self.deconv2(img + enc3)
+        img = self.deconv1(self.attention1(enc4, img))
+        img = self.deconv2(self.attention2(img, enc3))
         img = self.deconv3(img + enc2)
         img = self.deconv4(self.pad(img + enc1))
         img = self.correction(self.pad1(img))
