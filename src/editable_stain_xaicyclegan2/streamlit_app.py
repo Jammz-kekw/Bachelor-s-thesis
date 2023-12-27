@@ -76,7 +76,7 @@ def main():
                                 value=4, step=1, on_change=streamlit.rerun)
 
     mod_range = [
-        st.slider(f'Alpha value {i+1}', min_value=-2.0, max_value=2.0, value=0.0, step=0.1, key=f"mod_{i+1}") for i in range(eigen_range)
+        st.slider(f'Alpha value {i+1}', min_value=-3.0, max_value=3.0, value=0.0, step=0.1, key=f"mod_{i+1}") for i in range(eigen_range)
     ]
 
     if 'eigen_range' not in st.session_state:
