@@ -57,6 +57,10 @@ def prepare_image(path):
     global tf, device
 
     _img = Image.open(path)
+
+    if _img.mode == 'RGBA':
+        _img = _img.convert('RGB')
+
     _img = tf(_img)
     _img = _img.unsqueeze(0)
     return _img.to(device)
