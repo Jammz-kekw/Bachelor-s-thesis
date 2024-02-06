@@ -2,7 +2,7 @@ If you like our work and want to use it in your own project, please cite us in y
 
 ```
 @Article{jimaging10020032,
-  AUTHOR = {Sloboda, Tibor and Hudec, LukÃ¡Å¡ and HalinkoviÄ, Matej and Benesova, Wanda},
+  AUTHOR = {Sloboda, Tibor and Hudec, Luk\'{a}\v{s} and Halinkovi\v{c}, Matej and Benesova, Wanda},
   TITLE = {Attention-Enhanced Unpaired xAI-GANs for Transformation of Histological Stain Images},
   JOURNAL = {Journal of Imaging},
   VOLUME = {10},
