@@ -5,8 +5,8 @@
 import cv2
 import os
 
-input_dir = "C:\FIIT\BP\Dataset\\train\HE"
-output_dir = "C:\FIIT\BP\Dataset\sliced\HE"
+input_dir = "C:\FIIT\BP\Dataset\\groundtruth"
+output_dir = "C:\FIIT\BP\Dataset\sliced\IHC_groundtruth"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
@@ -29,6 +29,7 @@ def slice_and_save(image_path, output_path):
             cv2.imwrite(slice_path, slice_img)
 
             count += 1
+
 
 for filename in os.listdir(input_dir):
     input_path = os.path.join(input_dir, filename)
