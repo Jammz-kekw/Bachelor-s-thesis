@@ -17,10 +17,15 @@ docker run \
     --gpus all \
     --privileged \
     --shm-size 8g \
-    -v "${HOME}/.netrc":/root/.netrc \
-    -v "${CWD}/..":/workspace/${PROJECT_NAME} \
-    -v "/mnt/scratch/${USER}/${PROJECT_NAME}":/workspace/${PROJECT_NAME}/.mnt/scratch \
-    -v "/mnt/persist/${USER}/${PROJECT_NAME}":/workspace/${PROJECT_NAME}/.mnt/persist \
-    -e CUDA_VISIBLE_DEVICES="${DEVICE}" \
-    ${IMAGE_TAG} \
+    -v "/setup/.netrc":/root/.netrc \
+    -v "/workspace/editable-stain-xaicyclegan2/..":/workspace/editable-stain-xaicyclegan2 \
+    -v "/mnt/scratch/root/editable-stain-xaicyclegan2":/workspace/editable-stain-xaicyclegan2/.mnt/scratch \
+    -v "/mnt/persist/root/editable-stain-xaicyclegan2":/workspace/editable-stain-xaicyclegan2/.mnt/persist \
+    -e CUDA_VISIBLE_DEVICES=1 \
+    latest \
     "$@" || exit $?
+
+
+
+
+docker run -d --name "editable-stain-xaicyclegan2" --gpus all --privileged --shm-size 8g -v "/setup/.netrc":/root/.netrc -v "/workspace/editable-stain-xaicyclegan2/..":/workspace/editable-stain-xaicyclegan2 -v "/mnt/scratch/root/editable-stain-xaicyclegan2":/workspace/editable-stain-xaicyclegan2/.mnt/scratch -v "/mnt/persist/root/editable-stain-xaicyclegan2":/workspace/editable-stain-xaicyclegan2/.mnt/persist -e CUDA_VISIBLE_DEVICES=1 editable-stain-xaicyclegan2:latest "$@"
