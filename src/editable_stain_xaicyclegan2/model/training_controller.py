@@ -62,7 +62,7 @@ class TrainingController:
                                     shuffle=False, pin_memory=True, num_workers=4)
 
         self.paired_ihc_data = DatasetFromFolder(settings.data_root, "paired_ihc", None)
-        self.paired_ihc = DataLoader(dataset=self.paired_he_data, batch_size=settings.batch_size,
+        self.paired_ihc = DataLoader(dataset=self.paired_ihc_data, batch_size=settings.batch_size,
                                      shuffle=False, pin_memory=True, num_workers=4)
         # endregion
 

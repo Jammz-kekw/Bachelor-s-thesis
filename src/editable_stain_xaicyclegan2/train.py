@@ -84,7 +84,7 @@ def main():
                     model_step += 1
 
     for (he_test, ihc_test) in enumerate(zip(training_controller.paired_he, training_controller.paired_ihc)):
-        # training_controller.training_step(he_test, ihc_test) # TODO - treba to somehow rozbehat
+        training_controller.training_step(he_test, ihc_test)  # TODO - treba to somehow rozbehat
 
         wandb_module.log("pair testing")
         wandb_module.log_image_paired(*training_controller.get_image_pairs_paired())
