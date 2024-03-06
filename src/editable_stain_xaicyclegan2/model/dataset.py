@@ -97,6 +97,7 @@ class DatasetFromFolder(data.Dataset):
         self.input_path = os.path.join(image_dir, sub_folder)
         self.image_filenames = [x for x in sorted(os.listdir(self.input_path))]
         self.seq = 0
+        self.seq2 = 0
         self.resize = resize
         self.crop_size = crop_size
         self.flip_h = flip_h
@@ -156,4 +157,43 @@ class DatasetFromFolder(data.Dataset):
         self.seq += 1
         if self.seq >= len(self.image_filenames):
             self.seq = 0
+        return img
+
+    def get_sequential_image2(self):
+        img = self.__getpic__(self.seq2)
+        self.seq2 += 1
+        if self.seq2 >= len(self.image_filenames):
+            self.seq2 = 0
+        return img
+
+    def __getpic__(self, index):
+
+        while True:
+            try:
+                img_fn = os.path.join(self.input_path, self.image_filenames[index])
+                img = Image.open(img_fn).convert('RGB')
+            except (OSError, SyntaxError) as e:
+                print(e)
+                print("Deleting it.")
+                os.remove(img_fn)
+                self.image_filenames.pop(index)
+                continue
+            except IndexError:
+                # change index to random one
+                index = random.randint(0, len(self.image_filenames) - 1)
+            else:
+                break
+
+        # preprocessing
+        if self.resize:
+            img = img.resize((self.resize, self.resize), Image.BILINEAR)
+
+        if self.crop_size:
+            x = random.randint(0, self.resize - self.crop_size + 1)
+            y = random.randint(0, self.resize - self.crop_size + 1)
+            img = img.crop((x, y, x + self.crop_size, y + self.crop_size))
+
+        if self.transform is not None:
+            img = self.transform(img)
+
         return img

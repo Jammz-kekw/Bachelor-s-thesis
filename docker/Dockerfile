@@ -8,7 +8,7 @@ RUN apt-get install ca-certificates
 RUN update-ca-certificates
 
 
-USER root
+USER root   
 
 # Install required packages
 WORKDIR /setup

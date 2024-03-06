@@ -25,6 +25,7 @@ class TrainingController:
 
     def __init__(self, settings: Settings | None, wandb_module: WandbModule | None, saved_model_obj: dict = None):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.half_precision = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
         self.settings = settings
         self.wandb_module = wandb_module
 
@@ -55,6 +56,14 @@ class TrainingController:
         self.test_p63_data = DatasetFromFolder(settings.data_root, settings.data_test_p63, settings.norm_dict)
         self.test_p63 = DataLoader(dataset=self.test_p63_data, batch_size=settings.batch_size,
                                    shuffle=False, pin_memory=True, num_workers=4)
+
+        self.paired_he_data = DatasetFromFolder(settings.data_root, "paired_he", None)
+        self.paired_he = DataLoader(dataset=self.paired_he_data, batch_size=settings.batch_size,
+                                    shuffle=False, pin_memory=True, num_workers=4)
+
+        self.paired_ihc_data = DatasetFromFolder(settings.data_root, "paired_ihc", None)
+        self.paired_ihc = DataLoader(dataset=self.paired_he_data, batch_size=settings.batch_size,
+                                     shuffle=False, pin_memory=True, num_workers=4)
         # endregion
 
         # region Initialize models
@@ -253,7 +262,7 @@ class TrainingController:
         (real_he, mask_he), (real_p63, mask_p63) = self.get_dummies(real_he, real_p63)
 
         # cast to bfloat16 for forward pass, it's faster
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+        with torch.autocast(device_type="cuda", dtype=self.half_precision):
             fake_p63 = self.generator_he_to_p63(real_he, mask_he)
             cycled_he = self.generator_p63_to_he(fake_p63, mask_he)
 
@@ -386,7 +395,7 @@ class TrainingController:
         self.generator_optimizer.step()
 
         # Back propagation for discriminators
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+        with torch.autocast(device_type="cuda", dtype=self.half_precision):
             discriminator_he_loss_partial = self.get_partial_disc_loss(real_he, fake_he, self.discriminator_he,
                                                                        1 - self.settings.lambda_mask_adversarial_ratio,
                                                                        self.fake_he_pool)
@@ -408,7 +417,7 @@ class TrainingController:
 
         self.discriminator_he_optimizer.step()
 
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16):
+        with torch.autocast(device_type="cuda", dtype=self.half_precision):
             discriminator_p63_loss_partial = self.get_partial_disc_loss(real_p63, fake_p63, self.discriminator_p63,
                                                                         1 - self.settings.lambda_mask_adversarial_ratio,
                                                                         self.fake_p63_pool)
@@ -454,6 +463,27 @@ class TrainingController:
     def get_image_pairs(self):
         real_he = self.test_he_data.get_sequential_image()
         real_p63 = self.test_p63_data.get_sequential_image()
+
+        real_he = Variable(real_he.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)
+        real_p63 = Variable(real_p63.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)
+
+        real_he_mask = get_mask(real_he, self.settings.mask_type)
+        real_p63_mask = get_mask(real_p63, self.settings.mask_type)
+
+        real_he_mask = Variable(real_he_mask.to(self.device).to(memory_format=torch.channels_last))
+        real_p63_mask = Variable(real_p63_mask.to(self.device).to(memory_format=torch.channels_last))
+
+        fake_p63 = self.generator_he_to_p63(real_he, real_he_mask)
+        reconstructed_he = self.generator_p63_to_he(fake_p63, real_he_mask)
+
+        fake_he = self.generator_p63_to_he(real_p63, real_p63_mask)
+        reconstructed_p63 = self.generator_he_to_p63(fake_he, real_p63_mask)
+
+        return (real_he, real_p63), (fake_he, fake_p63), (reconstructed_he, reconstructed_p63)
+
+    def get_image_pairs_paired(self):
+        real_he = self.test_he_data.get_sequential_image2()
+        real_p63 = self.test_p63_data.get_sequential_image2()
 
         real_he = Variable(real_he.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)
         real_p63 = Variable(real_p63.to(self.device)).expand(1, -1, -1, -1).to(memory_format=torch.channels_last)

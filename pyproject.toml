@@ -7,7 +7,7 @@ packages = [{include = "editable_stain_xaicyclegan2", from = "src"}]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 #torch = {version = "^2.1.1", source = "torch"} Might need to install these with pip
 #torchvision = {version = "^0.16.1", source = "torchvision"}
 #torchaudio = {version = "^2.1.1", source = "torchaudio"}

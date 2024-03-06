@@ -2,10 +2,12 @@ import os
 
 import torch
 import wandb
+from PIL import Image
 
+from editable_stain_xaicyclegan2.model.dataset import DefaultTransform
 from editable_stain_xaicyclegan2.model.training_controller import TrainingController
-from editable_stain_xaicyclegan2.setup.settings_module import Settings
 from editable_stain_xaicyclegan2.setup.wandb_module import WandbModule
+from editable_stain_xaicyclegan2.setup.settings_module import Settings
 
 
 def save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix="", suffix=""):
@@ -25,12 +27,13 @@ def save_model(epoch, model_dir, training_controller, wandb_module, settings, pr
         'discriminator_he_loss': training_controller.latest_discriminator_he_loss,
         'discriminator_p63_loss': training_controller.latest_discriminator_p63_loss,
         'settings': settings
-    }, f=os.path.join(model_dir, f'{prefix}model_checkpoint{suffix}.pth'))
+    }, f=os.path.join(model_dir, f"{prefix}model_checkpoint{suffix}.pt"))
 
 
 def main():
     # settings = Settings('settings_test.cfg')
-    settings = Settings('settings.cfg')
+
+    settings = Settings("settings.cfg")
     wandb_module = WandbModule(settings)
     training_controller = TrainingController(settings, wandb_module)
     step_max = min(len(training_controller.train_he), len(training_controller.train_p63))
@@ -80,7 +83,16 @@ def main():
                     save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix=f"{model_step}_")
                     model_step += 1
 
-    # check if real_he and real_p63 exist in memory. We can't reference them directly by variable name since they may be undefined.
+    for (he_test, ihc_test) in enumerate(zip(training_controller.paired_he, training_controller.paired_ihc)):
+        # training_controller.training_step(he_test, ihc_test) # TODO - treba to somehow rozbehat
+
+        wandb_module.log("pair testing")
+        wandb_module.log_image_paired(*training_controller.get_image_pairs_paired())
+
+        print("Paired done\n")
+
+    # check if real_he and real_p63 exist in memory.
+    # We can't reference them directly by variable name since they may be undefined.
     if 'real_he' not in locals() or 'real_p63' not in locals():
         exit(1)
 

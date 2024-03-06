@@ -74,6 +74,27 @@ class WandbModule:
             "generation_results": wandb.Image(merged_image, caption="Top row HE->P63, Bottom P63->HE, L to R orig., transf., reconstr."),
         }, step=self.step)
 
+    def log_image_paired(self, real_image_pair, gen_image_pair, recon_image_pair):
+        # Concatenate the images horizontally to create rows
+        row_0 = np.concatenate((
+            normalize_image(real_image_pair[0]),
+            normalize_image(gen_image_pair[1]),
+            normalize_image(recon_image_pair[0]),
+        ), axis=1)
+
+        row_1 = np.concatenate((
+            normalize_image(real_image_pair[1]),
+            normalize_image(gen_image_pair[0]),
+            normalize_image(recon_image_pair[1]),
+        ), axis=1)
+
+        # Concatenate the rows vertically to create the final image
+        merged_image = np.concatenate((row_0, row_1), axis=0)
+
+        self.run.log({
+            "generation_results": wandb.Image(merged_image, caption="Paired"),
+        }, step=self.step)
+
     def log_model(self, model_file):
         if self.model_file is None:
             self.model_file = model_file
