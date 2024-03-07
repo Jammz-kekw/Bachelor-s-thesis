@@ -133,6 +133,8 @@ class DatasetFromFolder(data.Dataset):
             y = random.randint(0, self.resize - self.crop_size + 1)
             img = img.crop((x, y, x + self.crop_size, y + self.crop_size))
 
+        # flipping switched off in order to keep parity orientation (may have impact on image quality)
+        """ 
         if self.flip_h:
             if random.random() < 0.5:
                 img = img.transpose(Image.FLIP_LEFT_RIGHT)
@@ -140,6 +142,7 @@ class DatasetFromFolder(data.Dataset):
         if self.flip_v:
             if random.random() < 0.5:
                 img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        """
 
         if self.transform is not None:
             img = self.transform(img)

@@ -83,13 +83,15 @@ def main():
                     save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix=f"{model_step}_")
                     model_step += 1
 
+    """
     for (he_test, ihc_test) in enumerate(zip(training_controller.paired_he, training_controller.paired_ihc)):
-        training_controller.training_step(he_test, ihc_test)  # TODO - treba to somehow rozbehat
+        training_controller.training_step(he_test, ihc_test)
 
         wandb_module.log("pair testing")
         wandb_module.log_image_paired(*training_controller.get_image_pairs_paired())
 
         print("Paired done\n")
+    """
 
     # check if real_he and real_p63 exist in memory.
     # We can't reference them directly by variable name since they may be undefined.
