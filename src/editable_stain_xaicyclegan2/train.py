@@ -2,7 +2,7 @@ import os
 
 import torch
 import wandb
-from PIL import Image
+from datetime import datetime
 
 from editable_stain_xaicyclegan2.model.dataset import DefaultTransform
 from editable_stain_xaicyclegan2.model.training_controller import TrainingController
@@ -54,6 +54,7 @@ def main():
     else:
         exit(1)
     model_step = 0
+    start = datetime.now()
 
     for epoch in range(settings.epochs):
         # Iterate over the dataset
@@ -66,6 +67,9 @@ def main():
                 wandb_module.log(epoch)
                 wandb_module.log_image(*training_controller.get_image_pairs())
                 wandb_module.step += 1
+                curr_time = datetime.now()
+                time_diff = curr_time - start
+                time_diff_minutes = time_diff.total_seconds() / 60
 
                 print(f'Epoch: {epoch + 1}/{settings.epochs}\n'
                       f'Step: {step}/{step_max}\n'
@@ -76,6 +80,7 @@ def main():
                       f'Identity Loss: {training_controller.latest_identity_loss}\n'
                       f'Context Loss {training_controller.latest_context_loss}\n'
                       f'Cycle Context Loss: {training_controller.latest_cycle_context_loss}\n'
+                      f'Time passed: {time_diff_minutes:.2f} minutes\n'
                       )
 
                 # Save model checkpoint
