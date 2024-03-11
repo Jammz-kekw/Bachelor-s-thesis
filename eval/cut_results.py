@@ -29,25 +29,25 @@ def cut_and_save_single_image(image_path, image_name_prefix, output_directory):
     # Crop the first image - first row, second column
     first_image = image[:256, 256:512]
     first_image_name = f"{image_name_prefix}_he_to_ihc.png"
-    first_image_path = os.path.join(output_directory, first_image_name)
+    first_image_path = os.path.join(output_directory + "\he_to_ihc", first_image_name)
     cv2.imwrite(first_image_path, first_image)
 
     # Crop the second image - second row, second column
     second_image = image[256:512, 256:512]
     second_image_name = f"{image_name_prefix}_ihc_to_he.png"
-    second_image_path = os.path.join(output_directory, second_image_name)
+    second_image_path = os.path.join(output_directory + "\ihc_to_he", second_image_name)
     cv2.imwrite(second_image_path, second_image)
 
     # first row, first column
     orig_he = image[:256, :256]
     orig_he_name = f"{image_name_prefix}_orig_he.png"
-    orig_he_path = os.path.join(output_directory, orig_he_name)
+    orig_he_path = os.path.join(output_directory + "\orig_he", orig_he_name)
     cv2.imwrite(orig_he_path, orig_he)
 
     # second row, first column
     orig_ihc = image[256:512, :256]
     orig_ihc_name = f"{image_name_prefix}_orig_ihc.png"
-    orig_ihc_path = os.path.join(output_directory, orig_ihc_name)
+    orig_ihc_path = os.path.join(output_directory + "\orig_ihc", orig_ihc_name)
     cv2.imwrite(orig_ihc_path, orig_ihc)
 
 
