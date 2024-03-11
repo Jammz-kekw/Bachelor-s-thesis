@@ -43,13 +43,13 @@ class TrainingController:
         # region Initialize data loaders
         self.train_he_data = DatasetFromFolder(settings.data_root, settings.data_train_he, settings.norm_dict)
         self.train_he = DataLoader(dataset=self.train_he_data, batch_size=settings.batch_size,
-                                   shuffle=False, pin_memory=True, num_workers=4)
+                                   shuffle=True, pin_memory=True, num_workers=4)
 
-        # shuffle was switched False in order to get he - ihc parity in training data
+        # train data can be shuffled in order to get better results
 
         self.train_p63_data = DatasetFromFolder(settings.data_root, settings.data_train_p63, settings.norm_dict)
         self.train_p63 = DataLoader(dataset=self.train_p63_data, batch_size=settings.batch_size,
-                                    shuffle=False, pin_memory=True, num_workers=4)
+                                    shuffle=True, pin_memory=True, num_workers=4)
 
         self.test_he_data = DatasetFromFolder(settings.data_root, settings.data_test_he, settings.norm_dict)
         self.test_he = DataLoader(dataset=self.test_he_data, batch_size=settings.batch_size,

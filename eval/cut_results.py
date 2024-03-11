@@ -38,5 +38,17 @@ def cut_and_save_single_image(image_path, image_name_prefix, output_directory):
     second_image_path = os.path.join(output_directory, second_image_name)
     cv2.imwrite(second_image_path, second_image)
 
+    # first row, first column
+    orig_he = image[:256, :256]
+    orig_he_name = f"{image_name_prefix}_orig_he.png"
+    orig_he_path = os.path.join(output_directory, orig_he_name)
+    cv2.imwrite(orig_he_path, orig_he)
+
+    # second row, first column
+    orig_ihc = image[256:512, :256]
+    orig_ihc_name = f"{image_name_prefix}_orig_ihc.png"
+    orig_ihc_path = os.path.join(output_directory, orig_ihc_name)
+    cv2.imwrite(orig_ihc_path, orig_ihc)
+
 
 cut_and_save_images(input_directory, output_directory)

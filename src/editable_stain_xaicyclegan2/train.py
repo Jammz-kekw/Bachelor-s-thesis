@@ -88,6 +88,7 @@ def main():
                     save_model(epoch, model_dir, training_controller, wandb_module, settings, prefix=f"{model_step}_")
                     model_step += 1
 
+    print("Finished ", datetime.now())
     """
     for (he_test, ihc_test) in enumerate(zip(training_controller.paired_he, training_controller.paired_ihc)):
         training_controller.training_step(he_test, ihc_test)
