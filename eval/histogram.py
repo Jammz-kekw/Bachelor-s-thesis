@@ -17,9 +17,21 @@ def split_image(image, patch_size):
     return patches
 
 
+def visualise_split(patch):
+    i = 1
+    for each in patch:
+        plt.subplot(4, 4, i)
+        plt.imshow(cv2.cvtColor(each, cv2.COLOR_LAB2RGB))
+        i += 1
+    plt.show()
+
+
 def calculate_mean_mutual_information(image1, image2, patch_size):
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
+
+    # visualise_split(patches1)
+    # visualise_split(patches2)
 
     mutual_information_values = []
 
@@ -47,6 +59,53 @@ def visualize_images(image_gt, image_translated, run_no):
     plt.title(f'{run_no} - translated')
 
     plt.show()
+# TODO - vizualizovat histogramy
+
+
+def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L, hist_translated_A, hist_translated_B, img_gt, img_translated, title):
+    plt.figure(figsize=(15, 10))
+
+    # Plot for original images
+    plt.subplot(2, 3, 4)
+    plt.imshow(cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB))
+    plt.title('Original - Ground Truth')
+    plt.axis('off')
+
+    plt.subplot(2, 3, 6)
+    plt.imshow(cv2.cvtColor(img_translated, cv2.COLOR_BGR2RGB))
+    plt.title('Original - Translated')
+    plt.axis('off')
+
+    # Plot for L channel
+    plt.subplot(2, 3, 1)
+    plt.plot(hist_gt_L, color='r', label='Ground Truth')
+    plt.plot(hist_translated_L, color='b', linestyle='--', label='Translated')
+    plt.xlabel('Pixel Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram - L Channel')
+    plt.legend()
+
+    # Plot for A channel
+    plt.subplot(2, 3, 2)
+    plt.plot(hist_gt_A, color='r', label='Ground Truth')
+    plt.plot(hist_translated_A, color='b', linestyle='--', label='Translated')
+    plt.xlabel('Pixel Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram - A Channel')
+    plt.legend()
+
+    # Plot for B channel
+    plt.subplot(2, 3, 3)
+    plt.plot(hist_gt_B, color='r', label='Ground Truth')
+    plt.plot(hist_translated_B, color='b', linestyle='--', label='Translated')
+    plt.xlabel('Pixel Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram - B Channel')
+    plt.legend()
+
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -57,30 +116,73 @@ if __name__ == "__main__":
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)
 
     for idx, (orig_he_file, ihc_to_he_file) in enumerate(zip(orig_he_files, ihc_to_he_files)):
-        if orig_he_file.endswith(".png") and ihc_to_he_file.endswith(".png"):  # Adjust file extensions if needed
+        if orig_he_file.endswith(".png") and ihc_to_he_file.endswith(".png"):
             gt_image_path = os.path.join(orig_he_folder_path, orig_he_file)
             translated_image_path = os.path.join(ihc_to_he_folder_path, ihc_to_he_file)
 
-            img_gt = cv2.imread(gt_image_path, cv2.IMREAD_GRAYSCALE)
-            img_translated = cv2.imread(translated_image_path, cv2.IMREAD_GRAYSCALE)
+            img_gt = cv2.imread(gt_image_path)
+            img_translated = cv2.imread(translated_image_path)
+
+            img_gt_lab = cv2.cvtColor(img_gt, cv2.COLOR_BGR2LAB)
+            img_translated_lab = cv2.cvtColor(img_translated, cv2.COLOR_BGR2LAB)
 
             name = orig_he_file.split('_')
             name_merged = '_'.join(name[:2])
 
-            visualize_images(gt_image_path, translated_image_path, name_merged)
+            # visualize_images(gt_image_path, translated_image_path, name_merged)
 
             patch_size = 64
 
             print(f"{name_merged}")
 
-            mean_normalized_mi = calculate_mean_mutual_information(img_gt, img_translated, patch_size)
+            mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
+            # tuto ten LAB - pozor na datovy typ
             print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
 
-            hist_gt = cv2.calcHist([img_gt], [0], None, [256], [0, 256])
-            hist_translated = cv2.calcHist([img_translated], [0], None, [256], [0, 256])
+            hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
+            hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
+            hist_gt_B = cv2.calcHist([img_gt_lab], [2], None, [256], [0, 256])
 
-            hist_gt /= hist_gt.sum()
-            hist_translated /= hist_translated.sum()
+            hist_translated_L = cv2.calcHist([img_translated_lab], [0], None, [256], [0, 256])
+            hist_translated_A = cv2.calcHist([img_translated_lab], [1], None, [256], [0, 256])
+            hist_translated_B = cv2.calcHist([img_translated_lab], [2], None, [256], [0, 256])
 
-            bhattacharyya_coefficient = cv2.compareHist(hist_gt, hist_translated, cv2.HISTCMP_BHATTACHARYYA)
-            print(f"Bhattacharyya Coefficient - {bhattacharyya_coefficient}\n")
+            # Normalize histograms
+            hist_gt_L /= hist_gt_L.sum()
+            hist_gt_A /= hist_gt_A.sum()
+            hist_gt_B /= hist_gt_B.sum()
+
+            hist_translated_L /= hist_translated_L.sum()
+            hist_translated_A /= hist_translated_A.sum()
+            hist_translated_B /= hist_translated_B.sum()
+
+            # Calculate Bhattacharyya coefficients
+            bhattacharyya_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_BHATTACHARYYA)
+            bhattacharyya_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_BHATTACHARYYA)
+            bhattacharyya_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_BHATTACHARYYA)
+
+            correl_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_CORREL)
+            correl_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CORREL)
+            correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
+
+            chi_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_CHISQR)
+            chi_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CHISQR)
+            chi_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CHISQR)
+
+            # the less, the better (more precise)
+            print(f"L bha -  {bhattacharyya_coefficient_L}")
+            print(f"A bha - {bhattacharyya_coefficient_A}")
+            print(f"B bha -  {bhattacharyya_coefficient_B}\n")
+
+            # the more, the better (more precise)
+            print(f"L cor - {correl_coefficient_L}")
+            print(f"A cor - {correl_coefficient_A}")
+            print(f"B cor - {correl_coefficient_B}\n")
+
+            print(f"L chi - {chi_coefficient_L}")
+            print(f"A chi - {chi_coefficient_A}")
+            print(f"B chi - {chi_coefficient_B}\n")
+
+            visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
+                                    hist_translated_L, hist_translated_A, hist_translated_B,
+                                    img_gt, img_translated, name_merged)
