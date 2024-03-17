@@ -63,6 +63,12 @@ def visualize_images(image_gt, image_translated, run_no):
 
 
 def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L, hist_translated_A, hist_translated_B, img_gt, img_translated, title):
+    hist_gt_merged = hist_gt_L + hist_gt_A + hist_gt_B
+    hist_translated_merged = hist_translated_L + hist_translated_A + hist_translated_B
+
+    hist_gt_merged /= hist_gt_merged.sum()
+    hist_translated_merged /= hist_translated_merged.sum()
+
     plt.figure(figsize=(15, 10))
 
     # Plot for original images
@@ -103,6 +109,15 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.title('Histogram - B Channel')
     plt.legend()
 
+    # Plot for LAB as a whole
+    plt.subplot(2, 3, 5)
+    plt.plot(hist_gt_merged, color='r', label='Ground Truth')
+    plt.plot(hist_translated_merged, color='b', linestyle='--', label='Translated')
+    plt.xlabel('Pixel Intensity')
+    plt.ylabel('Frequency')
+    plt.title('Histogram - LAB comparison')
+    plt.legend()
+
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()
@@ -111,6 +126,8 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
 if __name__ == "__main__":
     orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_he'
     ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\ihc_to_he'
+
+    # 1646 results_cut.py
 
     orig_he_files = os.listdir(orig_he_folder_path)
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)
@@ -165,10 +182,6 @@ if __name__ == "__main__":
             correl_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CORREL)
             correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
 
-            chi_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_CHISQR)
-            chi_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CHISQR)
-            chi_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CHISQR)
-
             # the less, the better (more precise)
             print(f"L bha -  {bhattacharyya_coefficient_L}")
             print(f"A bha - {bhattacharyya_coefficient_A}")
@@ -178,10 +191,6 @@ if __name__ == "__main__":
             print(f"L cor - {correl_coefficient_L}")
             print(f"A cor - {correl_coefficient_A}")
             print(f"B cor - {correl_coefficient_B}\n")
-
-            print(f"L chi - {chi_coefficient_L}")
-            print(f"A chi - {chi_coefficient_A}")
-            print(f"B chi - {chi_coefficient_B}\n")
 
             visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
                                     hist_translated_L, hist_translated_A, hist_translated_B,
