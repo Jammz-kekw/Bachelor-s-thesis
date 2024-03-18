@@ -11,7 +11,7 @@ def split_image(image, patch_size):
 
     for i in range(0, height, patch_size):
         for j in range(0, width, patch_size):
-            patch = image[i:i+patch_size, j:j+patch_size]
+            patch = image[i:i + patch_size, j:j + patch_size]
             patches.append(patch)
 
     return patches
@@ -59,10 +59,12 @@ def visualize_images(image_gt, image_translated, run_no):
     plt.title(f'{run_no} - translated')
 
     plt.show()
-# TODO - vizualizovat histogramy
 
 
-def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L, hist_translated_A, hist_translated_B, img_gt, img_translated, title):
+def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L, hist_translated_A, hist_translated_B,
+                             img_gt, img_translated, title, mean_normalized_mi, bhattacharyya_coefficient_L,
+                             bhattacharyya_coefficient_A, bhattacharyya_coefficient_B):
+
     hist_gt_merged = hist_gt_L + hist_gt_A + hist_gt_B
     hist_translated_merged = hist_translated_L + hist_translated_A + hist_translated_B
 
@@ -72,18 +74,18 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.figure(figsize=(15, 10))
 
     # Plot for original images
-    plt.subplot(2, 3, 4)
+    plt.subplot(2, 3, 1)
     plt.imshow(cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB))
     plt.title('Original - Ground Truth')
     plt.axis('off')
 
-    plt.subplot(2, 3, 6)
+    plt.subplot(2, 3, 3)
     plt.imshow(cv2.cvtColor(img_translated, cv2.COLOR_BGR2RGB))
     plt.title('Original - Translated')
     plt.axis('off')
 
     # Plot for L channel
-    plt.subplot(2, 3, 1)
+    plt.subplot(2, 3, 4)
     plt.plot(hist_gt_L, color='r', label='Ground Truth')
     plt.plot(hist_translated_L, color='b', linestyle='--', label='Translated')
     plt.xlabel('Pixel Intensity')
@@ -92,7 +94,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.legend()
 
     # Plot for A channel
-    plt.subplot(2, 3, 2)
+    plt.subplot(2, 3, 5)
     plt.plot(hist_gt_A, color='r', label='Ground Truth')
     plt.plot(hist_translated_A, color='b', linestyle='--', label='Translated')
     plt.xlabel('Pixel Intensity')
@@ -101,7 +103,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.legend()
 
     # Plot for B channel
-    plt.subplot(2, 3, 3)
+    plt.subplot(2, 3, 6)
     plt.plot(hist_gt_B, color='r', label='Ground Truth')
     plt.plot(hist_translated_B, color='b', linestyle='--', label='Translated')
     plt.xlabel('Pixel Intensity')
@@ -110,7 +112,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.legend()
 
     # Plot for LAB as a whole
-    plt.subplot(2, 3, 5)
+    plt.subplot(2, 3, 2)
     plt.plot(hist_gt_merged, color='r', label='Ground Truth')
     plt.plot(hist_translated_merged, color='b', linestyle='--', label='Translated')
     plt.xlabel('Pixel Intensity')
@@ -118,17 +120,19 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     plt.title('Histogram - LAB comparison')
     plt.legend()
 
+    plt.subplots_adjust(bottom=0.14)
+
+    plt.figtext(0.51, 0.03, f"Mean normalized mutual information - {mean_normalized_mi}", ha='center')
+    plt.figtext(0.24, 0.06, f"Bhattacharyya L - {bhattacharyya_coefficient_L}", ha='center')
+    plt.figtext(0.51, 0.06, f"Bhattacharyya A - {bhattacharyya_coefficient_A}", ha='center')
+    plt.figtext(0.79, 0.06, f"Bhattacharyya B - {bhattacharyya_coefficient_B}", ha='center')
+
     plt.suptitle(title)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
 
 
-if __name__ == "__main__":
-    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_he'
-    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\ihc_to_he'
-
-    # 1646 results_cut.py
-
+def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
     orig_he_files = os.listdir(orig_he_folder_path)
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)
 
@@ -150,7 +154,7 @@ if __name__ == "__main__":
 
             patch_size = 64
 
-            print(f"{name_merged}")
+            print(f"{tag} - {name_merged}")
 
             mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
             # tuto ten LAB - pozor na datovy typ
@@ -193,5 +197,22 @@ if __name__ == "__main__":
             print(f"B cor - {correl_coefficient_B}\n")
 
             visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
-                                    hist_translated_L, hist_translated_A, hist_translated_B,
-                                    img_gt, img_translated, name_merged)
+                                     hist_translated_L, hist_translated_A, hist_translated_B,
+                                     img_gt, img_translated, name_merged,
+                                     mean_normalized_mi,
+                                     bhattacharyya_coefficient_L,
+                                     bhattacharyya_coefficient_A,
+                                     bhattacharyya_coefficient_B)
+
+
+if __name__ == "__main__":
+    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_he'
+    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\ihc_to_he'
+
+    orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_ihc'
+    he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\he_to_ihc'
+
+    # 1646, 1640, 1605, 1602, 1496, 1491
+
+    calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
+    calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
