@@ -155,6 +155,7 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             patch_size = 64
 
             print(f"{tag} - {name_merged}")
+            name_merged = tag + " - " + name_merged
 
             mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
             # tuto ten LAB - pozor na datovy typ
@@ -187,6 +188,7 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
 
             # the less, the better (more precise)
+            # TODO - normalizacia LAB celkovo
             print(f"L bha -  {bhattacharyya_coefficient_L}")
             print(f"A bha - {bhattacharyya_coefficient_A}")
             print(f"B bha -  {bhattacharyya_coefficient_B}\n")
@@ -195,6 +197,9 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             print(f"L cor - {correl_coefficient_L}")
             print(f"A cor - {correl_coefficient_A}")
             print(f"B cor - {correl_coefficient_B}\n")
+
+            # TODO - kvalitativne cez color scaling na patche - heatmap
+            # TODO - kvantitativne cez statisticke medtody na batacharyi, coleracia, mutual
 
             visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
                                      hist_translated_L, hist_translated_A, hist_translated_B,
@@ -212,7 +217,7 @@ if __name__ == "__main__":
     orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_ihc'
     he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\he_to_ihc'
 
-    # 1646, 1640, 1605, 1602, 1496, 1491
+    # 1646, 1640, 1605, 1602, 1496, 1491, 1450
 
     calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
     calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
