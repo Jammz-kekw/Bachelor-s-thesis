@@ -71,9 +71,10 @@ def get_bhattacharyya(image1, image2):
     return bhattacharyya_coefficient_L, bhattacharyya_coefficient_A, bhattacharyya_coefficient_B
 
 
-def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name):
+def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name, image2_normalized):
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
+    patches2_normalized = split_image(image2, patch_size)
 
     bhattacharyya_values_L = []
     bhattacharyya_values_A = []
@@ -98,35 +99,63 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     mean_A = np.mean(bhattacharyya_values_A)
     mean_B = np.mean(bhattacharyya_values_B)
 
-    grid_values = np.array(bhattacharyya_values_L).reshape((4, 4))
+    grid_values_L = np.array(bhattacharyya_values_L).reshape((4, 4))
+    grid_values_A = np.array(bhattacharyya_values_A).reshape((4, 4))
+    grid_values_B = np.array(bhattacharyya_values_B).reshape((4, 4))
 
     # Plot the grid with the specified colormap
-    plt.subplot(1, 3, 2)
-    plt.imshow(grid_values, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_L), vmax=max(bhattacharyya_values_L))
-    plt.title('Bhattacharyya heatmap')
+    plt.subplot(2, 3, 4)
+    plt.imshow(grid_values_L, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_L),
+               vmax=max(bhattacharyya_values_L))
+    plt.title('Bhattacharyya L heatmap')
     plt.xticks(np.arange(4))  # Set the x-axis ticks
     plt.yticks(np.arange(4))  # Set the y-axis ticks
 
-    plt.subplot(1, 3, 1)
+    for i in range(grid_values_L.shape[0]):
+        for j in range(grid_values_L.shape[1]):
+            value = f'{grid_values_L[i, j]:.3f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    plt.subplot(2, 3, 5)
+    plt.imshow(grid_values_A, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_A),
+               vmax=max(bhattacharyya_values_A))
+    plt.title('Bhattacharyya A heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    for i in range(grid_values_A.shape[0]):
+        for j in range(grid_values_A.shape[1]):
+            value = f'{grid_values_A[i, j]:.3f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    plt.subplot(2, 3, 6)
+    plt.imshow(grid_values_B, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_B),
+               vmax=max(bhattacharyya_values_B))
+    plt.title('Bhattacharyya B heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    for i in range(grid_values_B.shape[0]):
+        for j in range(grid_values_B.shape[1]):
+            value = f'{grid_values_B[i, j]:.3f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    plt.subplot(2, 3, 1)
     plt.imshow(cv2.cvtColor(image1_rgb, cv2.COLOR_BGR2RGB))
-    plt.title('Original - Ground Truth')
+    plt.title('Ground Truth')
     plt.axis('off')
 
-    plt.subplot(1, 3, 3)
+    plt.subplot(2, 3, 3)
     plt.imshow(cv2.cvtColor(image2_rgb, cv2.COLOR_BGR2RGB))
-    plt.title('Original - Translated')
+    plt.title('Translated')
     plt.axis('off')
 
-    plt.figtext(0.23, 0.15, f"Mean Bhattacharyya L - {mean_L}", ha='center')
-    plt.figtext(0.51, 0.15, f"Mean Bhattacharyya A - {mean_A}", ha='center')
-    plt.figtext(0.78, 0.15, f"Mean Bhattacharyya B - {mean_B}", ha='center')
+    plt.figtext(0.23, 0.06, f"Mean Bhattacharyya L - {mean_L}", ha='center')
+    plt.figtext(0.51, 0.06, f"Mean Bhattacharyya A - {mean_A}", ha='center')
+    plt.figtext(0.78, 0.06, f"Mean Bhattacharyya B - {mean_B}", ha='center')
 
     plt.suptitle(name)
     plt.show()
-
-
-
-
 
 
 def visualize_images(image_gt, image_translated, run_no):
@@ -228,6 +257,9 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             img_gt = cv2.imread(gt_image_path)
             img_translated = cv2.imread(translated_image_path)
 
+            img_translated_normalized = l_channel_normalization(img_gt, img_translated)
+
+            img_translated_normalized_lab = cv2.cvtColor(img_translated_normalized, cv2.COLOR_BGR2LAB)
             img_gt_lab = cv2.cvtColor(img_gt, cv2.COLOR_BGR2LAB)
             img_translated_lab = cv2.cvtColor(img_translated, cv2.COLOR_BGR2LAB)
 
@@ -238,14 +270,14 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
 
             patch_size = 64
 
-            print(f"{tag} - {name_merged}")
+            # print(f"{tag} - {name_merged}")
             name_merged = tag + " - " + name_merged
 
             mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
             # tuto ten LAB - pozor na datovy typ
-            print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
+            # print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
 
-            calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged)
+            calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged, img_translated_normalized_lab)
 
             hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
             hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
@@ -275,17 +307,18 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
 
             # the less, the better (more precise)
             # TODO - normalizacia LAB celkovo
-            print(f"L bha -  {bhattacharyya_coefficient_L}")
-            print(f"A bha - {bhattacharyya_coefficient_A}")
-            print(f"B bha -  {bhattacharyya_coefficient_B}\n")
+            # print(f"L bha -  {bhattacharyya_coefficient_L}")
+            # print(f"A bha - {bhattacharyya_coefficient_A}")
+            # print(f"B bha -  {bhattacharyya_coefficient_B}\n")
+            #
+            # # the more, the better (more precise)
+            # print(f"L cor - {correl_coefficient_L}")
+            # print(f"A cor - {correl_coefficient_A}")
+            # print(f"B cor - {correl_coefficient_B}\n")
 
-            # the more, the better (more precise)
-            print(f"L cor - {correl_coefficient_L}")
-            print(f"A cor - {correl_coefficient_A}")
-            print(f"B cor - {correl_coefficient_B}\n")
+            # TODO - kvalitativne spravit aj heatmapy po normalizacii a porovnat, boli tam nejake problemy s
+            # TODO - tym ked sa spravila normalizacia na L, tak uplne odpalilo A a B kanaly do cervenych cisel
 
-            # TODO - kvalitativne cez color scaling na patche - heatmap
-            # takze treba zobrat jednotlive close-upy a
 
             # TODO - kvantitativne cez statisticke medtody na batacharyi, coleracia, mutual
 
@@ -296,6 +329,34 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
                                      bhattacharyya_coefficient_L,
                                      bhattacharyya_coefficient_A,
                                      bhattacharyya_coefficient_B)
+
+
+def l_channel_normalization(generated_img, ground_truth_img):
+    # Convert images to Lab color space
+    generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB).astype(np.float32)
+
+    # Extract Luminance Channel
+    generated_L = generated_lab[:, :, 0]
+    ground_truth_L = ground_truth_lab[:, :, 0]
+
+    # Normalize L Channels
+    generated_mean, generated_std = np.mean(generated_L), np.std(generated_L)
+    gt_mean, gt_std = np.mean(ground_truth_L), np.std(ground_truth_L)
+
+    # Apply normalization
+    normalized_L = (generated_L - generated_mean) * (gt_std / generated_std) + gt_mean
+
+    # Clip values to valid range [0, 100]
+    normalized_L = np.clip(normalized_L, 0, 100)
+
+    # Replace L channel in generated Lab image
+    generated_lab[:, :, 0] = normalized_L
+
+    # Convert back to RGB
+    normalized_img = cv2.cvtColor(generated_lab.astype(np.uint8), cv2.COLOR_LAB2BGR)
+
+    return normalized_img
 
 
 if __name__ == "__main__":
