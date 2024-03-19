@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 from skimage.metrics import normalized_mutual_information
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def split_image(image, patch_size):
@@ -44,6 +45,88 @@ def calculate_mean_mutual_information(image1, image2, patch_size):
     mean_mutual_information = np.mean(mutual_information_values)
 
     return mean_mutual_information
+
+
+def get_bhattacharyya(image1, image2):
+    hist_gt_L = cv2.calcHist([image1], [0], None, [256], [0, 256])
+    hist_gt_A = cv2.calcHist([image1], [1], None, [256], [0, 256])
+    hist_gt_B = cv2.calcHist([image1], [2], None, [256], [0, 256])
+
+    hist_translated_L = cv2.calcHist([image2], [0], None, [256], [0, 256])
+    hist_translated_A = cv2.calcHist([image2], [1], None, [256], [0, 256])
+    hist_translated_B = cv2.calcHist([image2], [2], None, [256], [0, 256])
+
+    hist_gt_L /= hist_gt_L.sum()
+    hist_gt_A /= hist_gt_A.sum()
+    hist_gt_B /= hist_gt_B.sum()
+
+    hist_translated_L /= hist_translated_L.sum()
+    hist_translated_A /= hist_translated_A.sum()
+    hist_translated_B /= hist_translated_B.sum()
+
+    bhattacharyya_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_BHATTACHARYYA)
+    bhattacharyya_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_BHATTACHARYYA)
+    bhattacharyya_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_BHATTACHARYYA)
+
+    return bhattacharyya_coefficient_L, bhattacharyya_coefficient_A, bhattacharyya_coefficient_B
+
+
+def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name):
+    patches1 = split_image(image1, patch_size)
+    patches2 = split_image(image2, patch_size)
+
+    bhattacharyya_values_L = []
+    bhattacharyya_values_A = []
+    bhattacharyya_values_B = []
+
+    for patch1, patch2 in zip(patches1, patches2):
+        bhattacharyya_coefficient_L, bhattacharyya_coefficient_A, bhattacharyya_coefficient_B = \
+            get_bhattacharyya(patch1, patch2)
+
+        bhattacharyya_values_L.append(bhattacharyya_coefficient_L)
+        bhattacharyya_values_A.append(bhattacharyya_coefficient_A)
+        bhattacharyya_values_B.append(bhattacharyya_coefficient_B)
+
+    i = 1
+    plt.figure(figsize=(16, 9))
+    colors = [(0, 'green'), (0.3, 'lime'), (0.5, 'yellow'), (0.6, 'gold'), (0.8, 'orange'), (1, 'red')]
+
+    # Create the custom colormap
+    cmap = LinearSegmentedColormap.from_list('excel_heatmap', colors)
+
+    mean_L = np.mean(bhattacharyya_values_L)
+    mean_A = np.mean(bhattacharyya_values_A)
+    mean_B = np.mean(bhattacharyya_values_B)
+
+    grid_values = np.array(bhattacharyya_values_L).reshape((4, 4))
+
+    # Plot the grid with the specified colormap
+    plt.subplot(1, 3, 2)
+    plt.imshow(grid_values, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_L), vmax=max(bhattacharyya_values_L))
+    plt.title('Bhattacharyya heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(cv2.cvtColor(image1_rgb, cv2.COLOR_BGR2RGB))
+    plt.title('Original - Ground Truth')
+    plt.axis('off')
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(cv2.cvtColor(image2_rgb, cv2.COLOR_BGR2RGB))
+    plt.title('Original - Translated')
+    plt.axis('off')
+
+    plt.figtext(0.23, 0.15, f"Mean Bhattacharyya L - {mean_L}", ha='center')
+    plt.figtext(0.51, 0.15, f"Mean Bhattacharyya A - {mean_A}", ha='center')
+    plt.figtext(0.78, 0.15, f"Mean Bhattacharyya B - {mean_B}", ha='center')
+
+    plt.suptitle(name)
+    plt.show()
+
+
+
+
 
 
 def visualize_images(image_gt, image_translated, run_no):
@@ -129,6 +212,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
 
     plt.suptitle(title)
     # plt.tight_layout()
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\histograms\\{title}.png')
     plt.show()
 
 
@@ -160,6 +244,8 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
             # tuto ten LAB - pozor na datovy typ
             print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
+
+            calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged)
 
             hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
             hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
@@ -199,6 +285,8 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             print(f"B cor - {correl_coefficient_B}\n")
 
             # TODO - kvalitativne cez color scaling na patche - heatmap
+            # takze treba zobrat jednotlive close-upy a
+
             # TODO - kvantitativne cez statisticke medtody na batacharyi, coleracia, mutual
 
             visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
@@ -221,3 +309,5 @@ if __name__ == "__main__":
 
     calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
     calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
+
+
