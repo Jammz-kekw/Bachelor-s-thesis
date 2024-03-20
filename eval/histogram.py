@@ -71,14 +71,20 @@ def get_bhattacharyya(image1, image2):
     return bhattacharyya_coefficient_L, bhattacharyya_coefficient_A, bhattacharyya_coefficient_B
 
 
-def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name, image2_normalized):
+def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name, image2_normalized_lab):
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
-    patches2_normalized = split_image(image2, patch_size)
+    patches2_normalized = split_image(image2_normalized_lab, patch_size)
+
+    # TODO - toto potom ako u ludi generalizovat do funkcie :)
 
     bhattacharyya_values_L = []
     bhattacharyya_values_A = []
     bhattacharyya_values_B = []
+
+    bhattacharyya_values_L_norm = []
+    bhattacharyya_values_A_norm = []
+    bhattacharyya_values_B_norm = []
 
     for patch1, patch2 in zip(patches1, patches2):
         bhattacharyya_coefficient_L, bhattacharyya_coefficient_A, bhattacharyya_coefficient_B = \
@@ -88,73 +94,136 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
         bhattacharyya_values_A.append(bhattacharyya_coefficient_A)
         bhattacharyya_values_B.append(bhattacharyya_coefficient_B)
 
-    i = 1
+    for patch1, patch2_normalized in zip(patches1, patches2_normalized):
+        bhattacharyya_coefficient_L_norm, bhattacharyya_coefficient_A_norm, bhattacharyya_coefficient_B_norm = \
+            get_bhattacharyya(patch1, patch2_normalized)
+
+        bhattacharyya_values_L_norm.append(bhattacharyya_coefficient_L_norm)
+        bhattacharyya_values_A_norm.append(bhattacharyya_coefficient_A_norm)
+        bhattacharyya_values_B_norm.append(bhattacharyya_coefficient_B_norm)
+
     plt.figure(figsize=(16, 9))
     colors = [(0, 'green'), (0.3, 'lime'), (0.5, 'yellow'), (0.6, 'gold'), (0.8, 'orange'), (1, 'red')]
 
     # Create the custom colormap
     cmap = LinearSegmentedColormap.from_list('excel_heatmap', colors)
+    cmap = 'autumn'
 
     mean_L = np.mean(bhattacharyya_values_L)
     mean_A = np.mean(bhattacharyya_values_A)
     mean_B = np.mean(bhattacharyya_values_B)
 
+    mean_L_norm = np.mean(bhattacharyya_values_L_norm)
+    mean_A_norm = np.mean(bhattacharyya_values_A_norm)
+    mean_B_norm = np.mean(bhattacharyya_values_B_norm)
+
     grid_values_L = np.array(bhattacharyya_values_L).reshape((4, 4))
     grid_values_A = np.array(bhattacharyya_values_A).reshape((4, 4))
     grid_values_B = np.array(bhattacharyya_values_B).reshape((4, 4))
 
+    grid_values_L_norm = np.array(bhattacharyya_values_L_norm).reshape((4, 4))
+    grid_values_A_norm = np.array(bhattacharyya_values_A_norm).reshape((4, 4))
+    grid_values_B_norm = np.array(bhattacharyya_values_B_norm).reshape((4, 4))
+
     # Plot the grid with the specified colormap
-    plt.subplot(2, 3, 4)
-    plt.imshow(grid_values_L, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_L),
-               vmax=max(bhattacharyya_values_L))
+    plt.subplot(3, 3, 4)
+    plt.imshow(grid_values_L, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
     plt.title('Bhattacharyya L heatmap')
     plt.xticks(np.arange(4))  # Set the x-axis ticks
     plt.yticks(np.arange(4))  # Set the y-axis ticks
 
     for i in range(grid_values_L.shape[0]):
         for j in range(grid_values_L.shape[1]):
-            value = f'{grid_values_L[i, j]:.3f}'
-            plt.text(j, i, value, ha='center', va='center', color='black')
+            value = f'{grid_values_L[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
 
-    plt.subplot(2, 3, 5)
-    plt.imshow(grid_values_A, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_A),
-               vmax=max(bhattacharyya_values_A))
+    plt.subplot(3, 3, 5)
+    plt.imshow(grid_values_A, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
     plt.title('Bhattacharyya A heatmap')
     plt.xticks(np.arange(4))  # Set the x-axis ticks
     plt.yticks(np.arange(4))  # Set the y-axis ticks
 
     for i in range(grid_values_A.shape[0]):
         for j in range(grid_values_A.shape[1]):
-            value = f'{grid_values_A[i, j]:.3f}'
-            plt.text(j, i, value, ha='center', va='center', color='black')
+            value = f'{grid_values_A[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
 
-    plt.subplot(2, 3, 6)
-    plt.imshow(grid_values_B, cmap=cmap, interpolation='nearest', vmin=min(bhattacharyya_values_B),
-               vmax=max(bhattacharyya_values_B))
+    plt.subplot(3, 3, 6)
+    plt.imshow(grid_values_B, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
     plt.title('Bhattacharyya B heatmap')
     plt.xticks(np.arange(4))  # Set the x-axis ticks
     plt.yticks(np.arange(4))  # Set the y-axis ticks
 
     for i in range(grid_values_B.shape[0]):
         for j in range(grid_values_B.shape[1]):
-            value = f'{grid_values_B[i, j]:.3f}'
-            plt.text(j, i, value, ha='center', va='center', color='black')
+            value = f'{grid_values_B[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
 
-    plt.subplot(2, 3, 1)
+    # Normalized
+    plt.subplot(3, 3, 7)
+    plt.imshow(grid_values_L_norm, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
+    plt.title('Bhattacharyya L normalized heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    for i in range(grid_values_L_norm.shape[0]):
+        for j in range(grid_values_L_norm.shape[1]):
+            value = f'{grid_values_L_norm[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
+
+    plt.subplot(3, 3, 8)
+    plt.imshow(grid_values_A_norm, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
+    plt.title('Bhattacharyya A normalized heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    for i in range(grid_values_A_norm.shape[0]):
+        for j in range(grid_values_A_norm.shape[1]):
+            value = f'{grid_values_A_norm[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
+
+    plt.subplot(3, 3, 9)
+    plt.imshow(grid_values_B_norm, cmap=cmap, interpolation='nearest', vmin=0,
+               vmax=1)
+    plt.title('Bhattacharyya B normalized heatmap')
+    plt.xticks(np.arange(4))  # Set the x-axis ticks
+    plt.yticks(np.arange(4))  # Set the y-axis ticks
+
+    for i in range(grid_values_B_norm.shape[0]):
+        for j in range(grid_values_B_norm.shape[1]):
+            value = f'{grid_values_B_norm[i, j]:.5f}'
+            plt.text(j, i, value, ha='center', va='center', color='black', rotation=45)
+
+    plt.subplot(3, 3, 1)
     plt.imshow(cv2.cvtColor(image1_rgb, cv2.COLOR_BGR2RGB))
     plt.title('Ground Truth')
     plt.axis('off')
 
-    plt.subplot(2, 3, 3)
+    plt.subplot(3, 3, 3)
     plt.imshow(cv2.cvtColor(image2_rgb, cv2.COLOR_BGR2RGB))
     plt.title('Translated')
+    plt.axis('off')
+
+    plt.subplot(3, 3, 2)
+    plt.imshow(cv2.cvtColor(image2_normalized_lab, cv2.COLOR_LAB2BGR))
+    plt.title('Normalized')
     plt.axis('off')
 
     plt.figtext(0.23, 0.06, f"Mean Bhattacharyya L - {mean_L}", ha='center')
     plt.figtext(0.51, 0.06, f"Mean Bhattacharyya A - {mean_A}", ha='center')
     plt.figtext(0.78, 0.06, f"Mean Bhattacharyya B - {mean_B}", ha='center')
 
+    plt.figtext(0.23, 0.04, f"Mean Bhattacharyya norm L - {mean_L_norm}", ha='center')
+    plt.figtext(0.51, 0.04, f"Mean Bhattacharyya norm A - {mean_A_norm}", ha='center')
+    plt.figtext(0.78, 0.04, f"Mean Bhattacharyya norm B - {mean_B_norm}", ha='center')
+
     plt.suptitle(name)
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\{name}.png')
     plt.show()
 
 
@@ -257,7 +326,8 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             img_gt = cv2.imread(gt_image_path)
             img_translated = cv2.imread(translated_image_path)
 
-            img_translated_normalized = l_channel_normalization(img_gt, img_translated)
+            img_translated_normalized = l_channel_normalization(img_translated, img_gt)  # generated | real !
+            # img_translated_normalized = lab_channel_normalization(img_translated, img_gt)
 
             img_translated_normalized_lab = cv2.cvtColor(img_translated_normalized, cv2.COLOR_BGR2LAB)
             img_gt_lab = cv2.cvtColor(img_gt, cv2.COLOR_BGR2LAB)
@@ -333,8 +403,8 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
 
 def l_channel_normalization(generated_img, ground_truth_img):
     # Convert images to Lab color space
-    generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB).astype(np.float32)
-    ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB).astype(np.float32)
+    generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB)
+    ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB)
 
     # Extract Luminance Channel
     generated_L = generated_lab[:, :, 0]
@@ -347,14 +417,40 @@ def l_channel_normalization(generated_img, ground_truth_img):
     # Apply normalization
     normalized_L = (generated_L - generated_mean) * (gt_std / generated_std) + gt_mean
 
-    # Clip values to valid range [0, 100]
-    normalized_L = np.clip(normalized_L, 0, 100)
+    # Clip values to valid range [0, 255]
+    normalized_L = np.clip(normalized_L, 0, 255)
 
     # Replace L channel in generated Lab image
     generated_lab[:, :, 0] = normalized_L
 
     # Convert back to RGB
-    normalized_img = cv2.cvtColor(generated_lab.astype(np.uint8), cv2.COLOR_LAB2BGR)
+    normalized_img = cv2.cvtColor(generated_lab, cv2.COLOR_LAB2BGR)
+
+    return normalized_img
+
+
+def lab_channel_normalization(generated_img, ground_truth_img):
+    # Convert images to Lab color space
+    generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB)
+    ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB)
+
+    # Extract channels
+    generated_L, generated_A, generated_B = cv2.split(generated_lab)
+    gt_L, gt_A, gt_B = cv2.split(ground_truth_lab)
+
+    # Normalize channels
+    for channel in [generated_L, generated_A, generated_B]:
+        channel_mean, channel_std = np.mean(channel), np.std(channel)
+        gt_mean, gt_std = np.mean(gt_L), np.std(gt_L)
+        normalized_channel = (channel - channel_mean) * (gt_std / channel_std) + gt_mean
+        # Clip values to valid range [0, 255]
+        np.clip(normalized_channel, 0, 255, out=normalized_channel)
+
+    # Merge normalized channels into Lab image
+    normalized_lab = cv2.merge([generated_L, generated_A, generated_B])
+
+    # Convert back to RGB
+    normalized_img = cv2.cvtColor(normalized_lab, cv2.COLOR_LAB2BGR)
 
     return normalized_img
 
