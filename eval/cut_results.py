@@ -1,8 +1,8 @@
 import cv2
 import os
 
-input_directory = "D:\FIIT\Bachelor-s-thesis\Dataset\\results"
-output_directory = "D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut"
+input_directory = "D:\FIIT\Bachelor-s-thesis\Dataset\\results\\run_4x"
+output_directory = "D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x"
 
 
 def cut_and_save_images(input_directory, output_directory):
@@ -17,10 +17,22 @@ def cut_and_save_images(input_directory, output_directory):
             image_path = os.path.join(input_directory, filename)
 
             # Determine the image name prefix
-            image_name_prefix = filename.split("_")[0] + "_" + filename.split("_")[1]
+            # image_name_prefix = filename.split("_")[0] + "_" + filename.split("_")[1]
+            image_name_prefix = filename
 
             # Call the function to cut and save images
             cut_and_save_single_image(image_path, image_name_prefix, output_directory)
+
+
+def rename(input_directory):
+    files = os.listdir(input_directory)
+
+    for filename in files:
+        parts = filename.split('_')
+        number = parts[2]
+        new_filename = f"{number}.png"
+
+        os.rename(os.path.join(input_directory, filename), os.path.join(input_directory, new_filename))
 
 
 def cut_and_save_single_image(image_path, image_name_prefix, output_directory):
@@ -51,4 +63,5 @@ def cut_and_save_single_image(image_path, image_name_prefix, output_directory):
     cv2.imwrite(orig_ihc_path, orig_ihc)
 
 
+# rename(input_directory)
 cut_and_save_images(input_directory, output_directory)
