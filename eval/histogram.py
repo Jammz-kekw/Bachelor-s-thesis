@@ -223,8 +223,11 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.figtext(0.78, 0.04, f"Mean Bhattacharyya norm B - {mean_B_norm}", ha='center')
 
     plt.suptitle(name)
-    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\{name}.png')
-    plt.show()
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x\\{name}.png')
+    # plt.show()
+    plt.close()
+
+    return mean_L, mean_A, mean_B, mean_L_norm, mean_A_norm, mean_B_norm
 
 
 def visualize_images(image_gt, image_translated, run_no):
@@ -310,13 +313,22 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
 
     plt.suptitle(title)
     # plt.tight_layout()
-    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\histograms\\{title}.png')
-    plt.show()
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\histograms\\run_4x\\{title}.png')
+    # plt.show()
+    plt.close()
 
 
 def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
     orig_he_files = os.listdir(orig_he_folder_path)
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)
+
+    mean_Ls = []
+    mean_As = []
+    mean_Bs = []
+
+    mean_Ls_norm = []
+    mean_As_norm = []
+    mean_Bs_norm = []
 
     for idx, (orig_he_file, ihc_to_he_file) in enumerate(zip(orig_he_files, ihc_to_he_files)):
         if orig_he_file.endswith(".png") and ihc_to_he_file.endswith(".png"):
@@ -347,7 +359,15 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             # tuto ten LAB - pozor na datovy typ
             # print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
 
-            calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged, img_translated_normalized_lab)
+            mean_L, mean_A, mean_B, mean_L_norm, mean_A_norm, mean_B_norm = calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged, img_translated_normalized_lab)
+
+            mean_Ls.append(mean_L)
+            mean_As.append(mean_A)
+            mean_Bs.append(mean_B)
+
+            mean_Ls_norm.append(mean_L_norm)
+            mean_As_norm.append(mean_A_norm)
+            mean_Bs_norm.append(mean_L_norm)
 
             hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
             hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
@@ -399,6 +419,14 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
                                      bhattacharyya_coefficient_L,
                                      bhattacharyya_coefficient_A,
                                      bhattacharyya_coefficient_B)
+
+    np.save(f'{tag}_L.npy', mean_Ls)
+    np.save(f'{tag}_A.npy', mean_As)
+    np.save(f'{tag}_B.npy', mean_As)
+
+    np.save(f'{tag}_L_norm.npy', mean_Ls_norm)
+    np.save(f'{tag}_A_norm.npy', mean_As_norm)
+    np.save(f'{tag}_B_norm.npy', mean_Bs_norm)
 
 
 def l_channel_normalization(generated_img, ground_truth_img):
@@ -456,13 +484,11 @@ def lab_channel_normalization(generated_img, ground_truth_img):
 
 
 if __name__ == "__main__":
-    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_he'
-    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\ihc_to_he'
+    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
+    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
 
-    orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\orig_ihc'
-    he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\he_to_ihc'
-
-    # 1646, 1640, 1605, 1602, 1496, 1491, 1450
+    orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
+    he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
 
     calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
     calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")

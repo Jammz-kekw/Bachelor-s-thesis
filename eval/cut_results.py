@@ -16,9 +16,8 @@ def cut_and_save_images(input_directory, output_directory):
             # Load the image
             image_path = os.path.join(input_directory, filename)
 
-            # Determine the image name prefix
             # image_name_prefix = filename.split("_")[0] + "_" + filename.split("_")[1]
-            image_name_prefix = filename
+            image_name_prefix = filename.split(".")[0]
 
             # Call the function to cut and save images
             cut_and_save_single_image(image_path, image_name_prefix, output_directory)
