@@ -1,8 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import stats
 
 
-def descriptive_analysis(data):
+def get_mean(l, a, b):
+    return (l + a + b) / 3
+
+
+def descriptive_analysis(data, tag):
     mean_value = np.mean(data)
     std_dev = np.std(data)
     min_value = np.min(data)
@@ -21,18 +26,58 @@ def descriptive_analysis(data):
     print("  Q3:\t\t", q3, "\n")
 
     plt.hist(data, bins=30, color='skyblue', edgecolor='black')
-    plt.title('Histogram of Bhattacharyya Coefficients')
+    plt.title(f'Histogram of Bhattacharyya Coefficients - {tag}')
     plt.xlabel('Bhattacharyya Coefficients')
     plt.ylabel('Frequency')
     plt.grid(True)
     plt.show()
 
 
-def get_mean(l, a, b):
-    return (l + a + b) / 3
+def comparison_analysis(before, after):
+    mean_before = np.mean(before)
+    mean_after = np.mean(after)
+
+    std_before = np.std(before)
+    std_after = np.std(after)
+
+    plt.boxplot([before, after], labels=['Before Normalization', 'After Normalization'])
+    plt.title('Comparison of Bhattacharyya Coefficients Before and After Normalization')
+    plt.ylabel('Bhattacharyya Coefficients')
+    plt.show()
+
+    plt.hist(before, bins=30, alpha=0.5, label='Before Normalization')
+    plt.hist(after, bins=30, alpha=0.5, label='After Normalization')
+    plt.title('Histogram of Bhattacharyya Coefficients')
+    plt.xlabel('Bhattacharyya Coefficients')
+    plt.ylabel('Frequency')
+    plt.legend()
+    plt.show()
+
+    print("Descriptive Statistics:")
+    print("Before Normalization - Mean:", mean_before, " Std Dev:", std_before)
+    print("After Normalization - Mean:", mean_after, " Std Dev:", std_after, "\n")
+
+
+def statistic_tests(before, after):
+    # H0 -  Bhattacharyya after normalization is NOT significantly different from before normalization
+    # H1 -  Bhattacharyya after normalization is significantly different from before normalization
+
+    t_statistic, p_value_t = stats.ttest_rel(before, after, alternative='greater')
+
+    print("Paired t-test:")
+    print("T-statistic:", t_statistic)
+    print("P-value:", p_value_t)
+
+    alpha = 0.05
+    if p_value_t < alpha:
+        print("Reject the null hypothesis. Results after normalization have improved.")
+    else:
+        print("Fail to reject the null hypothesis. No significant improvement after normalization.\n")
 
 
 if __name__ == '__main__':
+    plt.close('all')
+
     """
         Load data
     """
@@ -65,16 +110,17 @@ if __name__ == '__main__':
         Descriptive analysis
     """
 
-    descriptive_analysis(he_l)
-    descriptive_analysis(he_l_norm)
+    descriptive_analysis(he_l, 'HE L')
+    descriptive_analysis(he_l_norm, 'HE L normalized')
 
     """
         Before / After normalization comparison       
     """
 
+    comparison_analysis(he_l, he_l_norm)
 
     """
         Statistical tests of significance
     """
 
-
+    statistic_tests(he_l, he_l_norm)
