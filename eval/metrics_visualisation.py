@@ -63,7 +63,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
     grid_norm_a = np.array(norm_a).reshape((4, 4))
     grid_norm_b = np.array(norm_b).reshape((4, 4))
 
-    plt.figure(figsize=(20, 14))
+    plt.figure(figsize=(13, 18))
 
     # Original image
     plt.subplot(4, 3, 1)
@@ -107,7 +107,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Generated B
     plt.subplot(4, 3, 11)
-    plt.imshow(grid_gen_a, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_gen_b, cmap=color, interpolation='nearest', vmin=0, vmax=1)
     plt.title("Generovaný B")
     plt.axis('off')
 
@@ -116,7 +116,57 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
             value = f'{grid_gen_b[i, j]:.2f}'
             plt.text(j, i, value, ha='center', va='center', color='black')
 
+    # Normalized L
+    plt.subplot(4, 3, 6)
+    plt.imshow(grid_norm_l, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.title("Normalizovaný L")
+    plt.axis('off')
+
+    for i in range(grid_norm_l.shape[0]):
+        for j in range(grid_norm_l.shape[1]):
+            value = f'{grid_norm_l[i, j]:.2f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    # Normalized A
+    plt.subplot(4, 3, 9)
+    plt.imshow(grid_norm_a, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.title("Normalizovaný A")
+    plt.axis('off')
+
+    for i in range(grid_norm_a.shape[0]):
+        for j in range(grid_norm_a.shape[1]):
+            value = f'{grid_norm_a[i, j]:.2f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    # Normalized B
+    plt.subplot(4, 3, 12)
+    plt.imshow(grid_norm_b, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.title("Normalizovaný B")
+    plt.axis('off')
+
+    for i in range(grid_norm_b.shape[0]):
+        for j in range(grid_norm_b.shape[1]):
+            value = f'{grid_norm_b[i, j]:.2f}'
+            plt.text(j, i, value, ha='center', va='center', color='black')
+
+    # Color bar
+    cb_ax = plt.axes((0.3, 0.05, 0.4, 0.02))
+    cb = plt.colorbar(ax=plt.gca(), orientation='horizontal', cax=cb_ax)
+    cb.ax.text(-0.02, 0.5, 'Lepšie', va='center', ha='right', transform=cb.ax.transAxes)
+    cb.ax.text(1.02, 0.5, 'Horšie', va='center', ha='left', transform=cb.ax.transAxes)
+
+    # Means on the left side
+    plt.figtext(0.23, 0.6, f"Priemer pre generovaný L - {np.mean(gen_l):.4f}", ha='center')
+    plt.figtext(0.23, 0.4, f"Priemer pre generovaný A - {np.mean(gen_a):.4f}", ha='center')
+    plt.figtext(0.23, 0.2, f"Priemer pre generovaný B - {np.mean(gen_b):.4f}", ha='center')
+
+    plt.figtext(0.23, 0.58, f"Priemer pre normalizovaný L - {np.mean(norm_l):.4f}", ha='center')
+    plt.figtext(0.23, 0.38, f"Priemer pre normalizovaný A - {np.mean(norm_a):.4f}", ha='center')
+    plt.figtext(0.23, 0.18, f"Priemer pre normalizovaný B - {np.mean(norm_b):.4f}", ha='center')
+
     plt.suptitle(title + " | " + tag)
+    # TODO - treba zmenit pri corelacii interval na -1,1 a aj texty k tomu, asi cez if hore do cfg podla tagu
+
     plt.show()
 
 
@@ -223,8 +273,16 @@ def run_pairs(original_files, generated_files, original_path, generated_path, ta
         generated_bha, generated_cor = compute_values(original_lab, generated_lab)
         normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
 
+        # TODO - pchat to tam teda v RGB alebo v LAB do vizualizacie?
+        original_rgb = cv2.cvtColor(original_rgb, cv2.COLOR_BGR2RGB)
+        generated_rgb = cv2.cvtColor(generated_rgb, cv2.COLOR_BGR2RGB)
+        normalized_rgb = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
+
         visualise_bhattacharyya(original_rgb, generated_rgb, normalized_rgb,
                                 generated_bha, normalized_bha, tag, 'bha')
+
+        visualise_bhattacharyya(original_rgb, generated_rgb, normalized_rgb,
+                                generated_cor, normalized_cor, tag, 'cor')
 
         print("halo")
         break
