@@ -32,7 +32,7 @@ def compute_values(original_image, generated_image):
     return [l_values_bha, a_values_bha, b_values_bha], [l_values_cor, a_values_cor, b_values_cor]
 
 
-def visualise_bhattacharyya(original, generated, normalized, generated_lab, normalized_lab, tag, metric):
+def visualise(original, generated, normalized, generated_lab, normalized_lab, tag, metric):
     """
             |  orig  |  generated  |  normalized  |
             |--------|-------------|--------------|
@@ -43,14 +43,21 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
             4x3
     """
 
+    plt.close('all')
+
     if metric == 'bha':
         title = "Bhattacharyya"
         color = 'RdYlGn_r'
+        min_range = 0
+        max_range = 1
     else:
         title = "Correlation"
-        color = 'RdYlGn'
+        color = 'coolwarm'
+        min_range = -1
+        max_range = 1
 
     stain = tag.split('-')[0].strip()
+    name = '_'.join([stain, tag.split('- ')[1]])
 
     gen_l, gen_a, gen_b = generated_lab
     norm_l, norm_a, norm_b = normalized_lab
@@ -85,7 +92,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Generated L
     plt.subplot(4, 3, 5)
-    plt.imshow(grid_gen_l, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_gen_l, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Generovaný L")
     plt.axis('off')
 
@@ -96,7 +103,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Generated A
     plt.subplot(4, 3, 8)
-    plt.imshow(grid_gen_a, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_gen_a, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Generovaný A")
     plt.axis('off')
 
@@ -107,7 +114,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Generated B
     plt.subplot(4, 3, 11)
-    plt.imshow(grid_gen_b, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_gen_b, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Generovaný B")
     plt.axis('off')
 
@@ -118,7 +125,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Normalized L
     plt.subplot(4, 3, 6)
-    plt.imshow(grid_norm_l, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_norm_l, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Normalizovaný L")
     plt.axis('off')
 
@@ -129,7 +136,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Normalized A
     plt.subplot(4, 3, 9)
-    plt.imshow(grid_norm_a, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_norm_a, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Normalizovaný A")
     plt.axis('off')
 
@@ -140,7 +147,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Normalized B
     plt.subplot(4, 3, 12)
-    plt.imshow(grid_norm_b, cmap=color, interpolation='nearest', vmin=0, vmax=1)
+    plt.imshow(grid_norm_b, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
     plt.title("Normalizovaný B")
     plt.axis('off')
 
@@ -151,9 +158,7 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
 
     # Color bar
     cb_ax = plt.axes((0.3, 0.05, 0.4, 0.02))
-    cb = plt.colorbar(ax=plt.gca(), orientation='horizontal', cax=cb_ax)
-    cb.ax.text(-0.02, 0.5, 'Lepšie', va='center', ha='right', transform=cb.ax.transAxes)
-    cb.ax.text(1.02, 0.5, 'Horšie', va='center', ha='left', transform=cb.ax.transAxes)
+    plt.colorbar(ax=plt.gca(), orientation='horizontal', cax=cb_ax)
 
     # Means on the left side
     plt.figtext(0.23, 0.6, f"Priemer pre generovaný L - {np.mean(gen_l):.4f}", ha='center')
@@ -164,15 +169,11 @@ def visualise_bhattacharyya(original, generated, normalized, generated_lab, norm
     plt.figtext(0.23, 0.38, f"Priemer pre normalizovaný A - {np.mean(norm_a):.4f}", ha='center')
     plt.figtext(0.23, 0.18, f"Priemer pre normalizovaný B - {np.mean(norm_b):.4f}", ha='center')
 
+    # Image
     plt.suptitle(title + " | " + tag)
-    # TODO - treba zmenit pri corelacii interval na -1,1 a aj texty k tomu, asi cez if hore do cfg podla tagu
-
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x_new\\{name}_{title}.png')
     plt.show()
-
-
-
-def visualise_correlation(original_image, generated_image):
-    pass
+    plt.close()
 
 
 def split_into_regions(image):
@@ -247,7 +248,23 @@ def load_image(name, folder):
     return image
 
 
-def run_pairs(original_files, generated_files, original_path, generated_path, tag):
+def run_pairs(original_files, generated_files, original_path, generated_path, stain_type):
+    gen_l_mean_bha = []
+    gen_a_mean_bha = []
+    gen_b_mean_bha = []
+
+    norm_l_mean_bha = []
+    norm_a_mean_bha = []
+    norm_b_mean_bha = []
+
+    gen_l_mean_cor = []
+    gen_a_mean_cor = []
+    gen_b_mean_cor = []
+
+    norm_l_mean_cor = []
+    norm_a_mean_cor = []
+    norm_b_mean_cor = []
+
     for _, (original_image, generated_image) in enumerate(zip(original_files, generated_files)):
         """
             1. rgb -> lab
@@ -259,7 +276,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, ta
         """
 
         image_no = original_image.split('_')[0]
-        tag = tag + " - " + image_no
+        tag = stain_type + " - " + image_no
 
         original_rgb = load_image(original_image, original_path)
         generated_rgb = load_image(generated_image, generated_path)
@@ -278,15 +295,45 @@ def run_pairs(original_files, generated_files, original_path, generated_path, ta
         generated_rgb = cv2.cvtColor(generated_rgb, cv2.COLOR_BGR2RGB)
         normalized_rgb = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
 
-        visualise_bhattacharyya(original_rgb, generated_rgb, normalized_rgb,
-                                generated_bha, normalized_bha, tag, 'bha')
+        visualise(original_rgb, generated_rgb, normalized_rgb,
+                  generated_bha, normalized_bha, tag, 'bha')
 
-        visualise_bhattacharyya(original_rgb, generated_rgb, normalized_rgb,
-                                generated_cor, normalized_cor, tag, 'cor')
+        visualise(original_rgb, generated_rgb, normalized_rgb,
+                  generated_cor, normalized_cor, tag, 'cor')
 
-        print("halo")
-        break
+        # Add means
+        gen_l_mean_bha.append(np.mean(generated_bha[0]))
+        gen_a_mean_bha.append(np.mean(generated_bha[1]))
+        gen_b_mean_bha.append(np.mean(generated_bha[2]))
 
+        norm_l_mean_bha.append(np.mean(normalized_bha[0]))
+        norm_a_mean_bha.append(np.mean(normalized_bha[1]))
+        norm_b_mean_bha.append(np.mean(normalized_bha[2]))
+
+        gen_l_mean_cor.append(np.mean(generated_cor[0]))
+        gen_a_mean_cor.append(np.mean(generated_cor[1]))
+        gen_b_mean_cor.append(np.mean(generated_cor[2]))
+
+        norm_l_mean_cor.append(np.mean(normalized_cor[0]))
+        norm_a_mean_cor.append(np.mean(normalized_cor[1]))
+        norm_b_mean_cor.append(np.mean(normalized_cor[2]))
+
+
+    np.save(f'{tag}_L_gen_bha.npy', gen_l_mean_bha)
+    np.save(f'{tag}_A_gen_bha.npy', gen_a_mean_bha)
+    np.save(f'{tag}_B_gen_bha.npy', gen_b_mean_bha)
+
+    np.save(f'{tag}_L_norm_bha.npy', norm_l_mean_bha)
+    np.save(f'{tag}_A_norm_bha.npy', norm_a_mean_bha)
+    np.save(f'{tag}_B_norm_bha.npy', norm_b_mean_bha)
+
+    np.save(f'{tag}_L_gen_cor.npy', gen_l_mean_cor)
+    np.save(f'{tag}_A_gen_cor.npy', gen_a_mean_cor)
+    np.save(f'{tag}_B_gen_cor.npy', gen_b_mean_cor)
+
+    np.save(f'{tag}_L_norm_cor.npy', norm_l_mean_cor)
+    np.save(f'{tag}_A_norm_cor.npy', norm_a_mean_cor)
+    np.save(f'{tag}_B_norm_cor.npy', norm_b_mean_cor)
 
 
 if __name__ == '__main__':
@@ -304,5 +351,4 @@ if __name__ == '__main__':
 
     run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
 
-
-
+    run_pairs(orig_ihc_files, he_to_ihc_files, orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
