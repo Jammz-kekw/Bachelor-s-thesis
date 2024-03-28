@@ -318,22 +318,22 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         norm_a_mean_cor.append(np.mean(normalized_cor[1]))
         norm_b_mean_cor.append(np.mean(normalized_cor[2]))
 
+    np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
+    np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
+    np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
 
-    np.save(f'{tag}_L_gen_bha.npy', gen_l_mean_bha)
-    np.save(f'{tag}_A_gen_bha.npy', gen_a_mean_bha)
-    np.save(f'{tag}_B_gen_bha.npy', gen_b_mean_bha)
+    np.save(f'{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
+    np.save(f'{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
+    np.save(f'{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
 
-    np.save(f'{tag}_L_norm_bha.npy', norm_l_mean_bha)
-    np.save(f'{tag}_A_norm_bha.npy', norm_a_mean_bha)
-    np.save(f'{tag}_B_norm_bha.npy', norm_b_mean_bha)
 
-    np.save(f'{tag}_L_gen_cor.npy', gen_l_mean_cor)
-    np.save(f'{tag}_A_gen_cor.npy', gen_a_mean_cor)
-    np.save(f'{tag}_B_gen_cor.npy', gen_b_mean_cor)
+    np.save(f'{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
+    np.save(f'{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
+    np.save(f'{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
 
-    np.save(f'{tag}_L_norm_cor.npy', norm_l_mean_cor)
-    np.save(f'{tag}_A_norm_cor.npy', norm_a_mean_cor)
-    np.save(f'{tag}_B_norm_cor.npy', norm_b_mean_cor)
+    np.save(f'{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
+    np.save(f'{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
+    np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
 
 
 if __name__ == '__main__':
