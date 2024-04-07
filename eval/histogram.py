@@ -23,6 +23,7 @@ def visualise_split(patch):
     for each in patch:
         plt.subplot(4, 4, i)
         plt.imshow(cv2.cvtColor(each, cv2.COLOR_LAB2RGB))
+        plt.axis('off')
         i += 1
     plt.show()
 
@@ -31,7 +32,7 @@ def calculate_mean_mutual_information(image1, image2, patch_size):
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
 
-    # visualise_split(patches1)
+    visualise_split(patches1)
     # visualise_split(patches2)
 
     mutual_information_values = []

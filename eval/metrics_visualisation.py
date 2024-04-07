@@ -3,6 +3,47 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
+from typing import Any, Dict, List, Optional, Tuple, TypedDict, Union
+from itertools import cycle
+
+
+def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 256]):
+    """
+    Calculates the histogram for each channel of the given image.
+    """
+    hist_channels = [cv2.calcHist([image], [i], None, histSize, ranges) for i in channels]
+    return hist_channels
+
+
+def color_correction(source: cv2.Mat, target: cv2.Mat) -> cv2.Mat:
+    """
+    Metóda slúži na korekciu farieb pomocou eCDF. Najskôr si vypočítame histogram pre každý kanál `source` a `target` obrázku.
+    Následne vypočítame eCDF pre každý histogram všetkých kanálov oboch obrázkov. Nakoniec použijeme lineárnu interpoláciu
+    na namapovanie `source` obrázku do `target` obrázku.
+    """
+    # source_hist = calculate_histogram(source, [[256]], [[0, 256]])
+    # target_hist = calculate_histogram(target, [[256]], [[0, 256]])
+
+    source_hist = calculate_histogram(source)
+    target_hist = calculate_histogram(target)
+
+    source_ecdf = []
+    target_ecdf = []
+
+    for i in range(3):
+        source_ecdf.append(np.cumsum(source_hist[i]) / np.sum(source_hist[i]))
+        target_ecdf.append(np.cumsum(target_hist[i]) / np.sum(target_hist[i]))
+
+    result = np.zeros_like(source)
+
+    for i in range(3):
+        lut = np.interp(source_ecdf[i], target_ecdf[i], np.arange(256))
+        result[:, :, i] = np.uint8(
+            np.interp(source[:, :, i], np.arange(256), lut)
+        )
+
+    return result
+
 
 def compute_values(original_image, generated_image):
     original_patches = split_into_regions(original_image)
@@ -287,6 +328,21 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         normalized_rgb = l_channel_normalization(original_lab, generated_lab)
         normalized_lab = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2LAB)
 
+        testing_rgb = color_correction(original_rgb, generated_rgb)
+        plt.subplot(1, 3, 1)
+        plt.imshow(original_rgb)
+
+        plt.subplot(1, 3, 2)
+        plt.imshow(generated_rgb)
+
+        plt.subplot(1, 3, 3)
+        plt.imshow(testing_rgb)
+
+        plt.show()
+
+        break
+
+        # TODO - tuna sprav vizualizaciu pred a po normalizacii pre histogram - staci to spustit len na poslednom HE
         generated_bha, generated_cor = compute_values(original_lab, generated_lab)
         normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
 
@@ -336,6 +392,17 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
 
 
+def visualise_histograms(original_image, generated_image):
+    orig_l, orig_a, orig_b = get_channels(original_image)
+    gen_l, gen_a, gen_b = get_channels(generated_image)
+
+    orig_lab = orig_l + orig_a + orig_b
+    orig_lab /= orig_lab.sum()
+
+    gen_lab = gen_l + gen_a + gen_b
+    gen_lab /= gen_lab.sum()
+
+
 if __name__ == '__main__':
     orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
     ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
@@ -352,3 +419,4 @@ if __name__ == '__main__':
     run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
 
     run_pairs(orig_ihc_files, he_to_ihc_files, orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
+

@@ -1,6 +1,7 @@
+from scipy import stats
+import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
 
 
 def get_mean(l, a, b):
@@ -9,7 +10,7 @@ def get_mean(l, a, b):
 
 def descriptive_analysis(data, tag, metric):
     if metric == 'bha':
-        title = "Bhattacharyya"
+        title = "Bhattacharyya distance"
     else:
         title = "Correlation"
 
@@ -31,8 +32,8 @@ def descriptive_analysis(data, tag, metric):
     print("  Q3:\t\t", q3, "\n")
 
     plt.hist(data, bins=30, color='skyblue', edgecolor='black')
-    plt.title(f'Histogram of {title} Coefficients - {tag}')
-    plt.xlabel(f'{title} Coefficients')
+    plt.title(f'Histogram of {title}  {tag}')
+    plt.xlabel(f'{title}')
     plt.ylabel('Frequency')
     plt.grid(True)
     plt.show()
@@ -40,7 +41,7 @@ def descriptive_analysis(data, tag, metric):
 
 def comparison_analysis(before, after, metric):
     if metric == 'bha':
-        title = "Bhattacharyya"
+        title = "Bhattacharyya distance"
     else:
         title = "Correlation"
 
@@ -51,19 +52,21 @@ def comparison_analysis(before, after, metric):
     std_after = np.std(after)
 
     plt.boxplot([before, after], labels=['Before Normalization', 'After Normalization'])
-    plt.title(f'Comparison of {title} Coefficients Before and After Normalization')
-    plt.ylabel(f'{title} Coefficients')
+    plt.title(f'Comparison of {title} Before and After Normalization')
+    plt.ylabel(f'{title}')
+    plt.text(1.1, mean_before, f'{mean_before:.5f}', color='black', va='center')
+    plt.text(2.1, mean_after, f'{mean_after:.5f}', color='black', va='center')
     plt.show()
 
     plt.hist(before, bins=30, alpha=0.5, label='Before Normalization')
     plt.hist(after, bins=30, alpha=0.5, label='After Normalization')
-    plt.title(f'Histogram of {title} Coefficients')
-    plt.xlabel(f'{title} Coefficients')
+    plt.title(f'Histogram of {title}')
+    plt.xlabel(f'{title}')
     plt.ylabel('Frequency')
     plt.legend()
     plt.show()
 
-    print("Descriptive Statistics:")
+    print(f"Descriptive Statistics {title}:")
     print("Before Normalization - Mean:", mean_before, " Std Dev:", std_before)
     print("After Normalization - Mean:", mean_after, " Std Dev:", std_after, "\n")
 
@@ -99,7 +102,7 @@ if __name__ == '__main__':
 
     he_l_bha = np.load('4x_mean_new//HE_L_gen_bha.npy')
     he_a_bha = np.load('4x_mean_new//HE_A_gen_bha.npy')
-    he_b_bha = np.load('4x_mean_new//HE_L_gen_bha.npy')
+    he_b_bha = np.load('4x_mean_new//HE_B_gen_bha.npy')
 
     he_lab_bha = get_mean(he_l_bha, he_a_bha, he_b_bha)
 
@@ -127,7 +130,7 @@ if __name__ == '__main__':
 
     he_l_cor = np.load('4x_mean_new//HE_L_gen_cor.npy')
     he_a_cor = np.load('4x_mean_new//HE_A_gen_cor.npy')
-    he_b_cor = np.load('4x_mean_new//HE_L_gen_cor.npy')
+    he_b_cor = np.load('4x_mean_new//HE_B_gen_cor.npy')
 
     he_lab_cor = get_mean(he_l_cor, he_a_cor, he_b_cor)
 
@@ -149,45 +152,51 @@ if __name__ == '__main__':
 
     ihc_lab_norm_cor = get_mean(ihc_l_norm_cor, ihc_a_norm_cor, ihc_b_norm_cor)
 
-    """
-        Descriptive analysis
-    """
-
-    descriptive_analysis(he_lab_bha, 'HE LAB', 'bha')
-    descriptive_analysis(he_lab_norm_bha, 'HE LAB normalized', 'bha')
-
-    descriptive_analysis(ihc_lab_bha, 'IHC LAB', 'bha')
-    descriptive_analysis(ihc_lab_norm_bha, 'IHC LAB normalized', 'bha')
-
-    """
-        Before / After normalization comparison       
-    """
-
-    comparison_analysis(he_lab_bha, he_lab_norm_bha, 'bha')
-    comparison_analysis(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
-
-    """
-        Statistical tests of significance
-    """
-
-    statistic_tests(he_lab_bha, he_lab_norm_bha, 'bha')
-    statistic_tests(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
-
     # """
     #     Descriptive analysis
     # """
     #
-    # descriptive_analysis(he_l_cor, 'HE L', 'cor')
-    # descriptive_analysis(he_l_norm_cor, 'HE L normalized', 'cor')
+    # descriptive_analysis(he_lab_bha, 'HE LAB', 'bha')
+    # descriptive_analysis(he_lab_norm_bha, 'HE LAB normalized', 'bha')
+    #
+    # descriptive_analysis(ihc_lab_bha, 'IHC LAB', 'bha')
+    # descriptive_analysis(ihc_lab_norm_bha, 'IHC LAB normalized', 'bha')
     #
     # """
     #     Before / After normalization comparison
     # """
     #
-    # comparison_analysis(he_l_cor, he_l_norm_cor, 'cor')
+    # comparison_analysis(he_lab_bha, he_lab_norm_bha, 'bha')
+    # comparison_analysis(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
     #
     # """
     #     Statistical tests of significance
     # """
     #
-    # statistic_tests(he_l_cor, he_l_norm_cor, 'cor')
+    # statistic_tests(he_lab_bha, he_lab_norm_bha, 'bha')
+    # statistic_tests(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
+
+    """
+    Descriptive analysis
+    """
+
+    descriptive_analysis(he_lab_cor, 'HE LAB', 'cor')
+    descriptive_analysis(he_lab_norm_cor, 'HE LAB normalized', 'cor')
+
+    descriptive_analysis(ihc_lab_cor, 'IHC LAB', 'cor')
+    descriptive_analysis(ihc_lab_norm_cor, 'IHC LAB normalized', 'cor')
+
+    """
+    Before / After normalization comparison       
+    """
+
+    comparison_analysis(he_lab_cor, he_lab_norm_cor, 'cor')
+    comparison_analysis(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
+
+    """
+    Statistical tests of significance
+    """
+
+    statistic_tests(he_lab_cor, he_lab_norm_cor, 'cor')
+    statistic_tests(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
+
