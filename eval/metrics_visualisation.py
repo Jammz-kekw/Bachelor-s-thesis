@@ -306,6 +306,14 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     norm_a_mean_cor = []
     norm_b_mean_cor = []
 
+    inter_l_mean_bha = []
+    inter_a_mean_bha = []
+    inter_b_mean_bha = []
+
+    inter_l_mean_cor = []
+    inter_a_mean_cor = []
+    inter_b_mean_cor = []
+
     for _, (original_image, generated_image) in enumerate(zip(original_files, generated_files)):
         """
             1. rgb -> lab
@@ -328,38 +336,47 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         normalized_rgb = l_channel_normalization(original_lab, generated_lab)
         normalized_lab = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2LAB)
 
-        testing_rgb = color_correction(generated_rgb, original_rgb)
-        plt.subplot(1, 3, 1)
-        plt.imshow(original_rgb)
-        plt.axis('off')
-        plt.title('Original')
+        interpolation_rgb = color_correction(generated_rgb, original_rgb)
+        interpolation_lab = cv2.cvtColor(interpolation_rgb, cv2.COLOR_RGB2LAB)
 
-        plt.subplot(1, 3, 2)
-        plt.imshow(generated_rgb)
-        plt.axis('off')
-        plt.title("generated")
-
-        plt.subplot(1, 3, 3)
-        plt.imshow(testing_rgb)
-        plt.axis('off')
-        plt.title('interpolation')
-
-        plt.show()
+        # plt.subplot(1, 3, 1)
+        # plt.imshow(original_rgb)
+        # plt.axis('off')
+        # plt.title('Original')
+        #
+        # plt.subplot(1, 3, 2)
+        # plt.imshow(generated_rgb)
+        # plt.axis('off')
+        # plt.title("generated")
+        #
+        # plt.subplot(1, 3, 3)
+        # plt.imshow(interpolation_rgb)
+        # plt.axis('off')
+        # plt.title('interpolation')
+        #
+        # plt.show()
 
         # TODO - tuna sprav vizualizaciu pred a po normalizacii pre histogram - staci to spustit len na poslednom HE
+
+        # Get quantitative analysis
         generated_bha, generated_cor = compute_values(original_lab, generated_lab)
         normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
+        interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
 
-        # TODO - pchat to tam teda v RGB alebo v LAB do vizualizacie?
+        # Visualization
         original_rgb = cv2.cvtColor(original_rgb, cv2.COLOR_BGR2RGB)
         generated_rgb = cv2.cvtColor(generated_rgb, cv2.COLOR_BGR2RGB)
         normalized_rgb = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
 
-        visualise(original_rgb, generated_rgb, normalized_rgb,
-                  generated_bha, normalized_bha, tag, 'bha')
+        # visualise(original_rgb, generated_rgb, normalized_rgb,
+        #           generated_bha, normalized_bha, tag, 'bha')
+        #
+        # visualise(original_rgb, generated_rgb, normalized_rgb,
+        #           generated_cor, normalized_cor, tag, 'cor')
 
-        visualise(original_rgb, generated_rgb, normalized_rgb,
-                  generated_cor, normalized_cor, tag, 'cor')
+        # TODO - interpolaciu
+
+        # TODO - spajanie 16 to 1
 
         # Add means
         gen_l_mean_bha.append(np.mean(generated_bha[0]))
@@ -378,7 +395,17 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         norm_a_mean_cor.append(np.mean(normalized_cor[1]))
         norm_b_mean_cor.append(np.mean(normalized_cor[2]))
 
-    exit()
+        inter_l_mean_bha.append(np.mean(interpolation_bha[0]))
+        inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
+        inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
+
+        inter_b_mean_cor.append(np.mean(interpolation_cor[0]))
+        inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
+        inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
+
+
+
+
     np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
     np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
     np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
@@ -395,6 +422,8 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     np.save(f'{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
     np.save(f'{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
     np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
+
+    # TODO - doplnit este tu interpolaciu
 
 
 def visualise_histograms(original_image, generated_image):
