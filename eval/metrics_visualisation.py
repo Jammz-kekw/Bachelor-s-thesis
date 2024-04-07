@@ -328,19 +328,23 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         normalized_rgb = l_channel_normalization(original_lab, generated_lab)
         normalized_lab = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2LAB)
 
-        testing_rgb = color_correction(original_rgb, generated_rgb)
+        testing_rgb = color_correction(generated_rgb, original_rgb)
         plt.subplot(1, 3, 1)
         plt.imshow(original_rgb)
+        plt.axis('off')
+        plt.title('Original')
 
         plt.subplot(1, 3, 2)
         plt.imshow(generated_rgb)
+        plt.axis('off')
+        plt.title("generated")
 
         plt.subplot(1, 3, 3)
         plt.imshow(testing_rgb)
+        plt.axis('off')
+        plt.title('interpolation')
 
         plt.show()
-
-        break
 
         # TODO - tuna sprav vizualizaciu pred a po normalizacii pre histogram - staci to spustit len na poslednom HE
         generated_bha, generated_cor = compute_values(original_lab, generated_lab)
@@ -374,6 +378,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         norm_a_mean_cor.append(np.mean(normalized_cor[1]))
         norm_b_mean_cor.append(np.mean(normalized_cor[2]))
 
+    exit()
     np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
     np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
     np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
