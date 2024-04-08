@@ -124,6 +124,18 @@ if __name__ == '__main__':
 
     ihc_lab_norm_bha = get_mean(ihc_l_norm_bha, ihc_a_norm_bha, ihc_b_norm_bha)
 
+    he_l_inter_bha = np.load('4x_mean_new//HE_L_inter_bha.npy')
+    he_a_inter_bha = np.load('4x_mean_new//HE_A_inter_bha.npy')
+    he_b_inter_bha = np.load('4x_mean_new//HE_B_inter_bha.npy')
+
+    he_lab_inter_bha = get_mean(he_l_inter_bha, he_a_inter_bha, he_b_inter_bha)
+
+    ihc_l_inter_bha = np.load('4x_mean_new//IHC_L_inter_bha.npy')
+    ihc_a_inter_bha = np.load('4x_mean_new//IHC_A_inter_bha.npy')
+    ihc_b_inter_bha = np.load('4x_mean_new//IHC_B_inter_bha.npy')
+
+    ihc_lab_inter_bha = get_mean(ihc_l_inter_bha, ihc_a_inter_bha, ihc_b_inter_bha)
+
     """
         Load data Correlation
     """
@@ -151,6 +163,20 @@ if __name__ == '__main__':
     ihc_b_norm_cor = np.load('4x_mean_new//IHC_B_norm_cor.npy')
 
     ihc_lab_norm_cor = get_mean(ihc_l_norm_cor, ihc_a_norm_cor, ihc_b_norm_cor)
+
+    he_l_inter_cor = np.load('4x_mean_new//HE_L_inter_cor.npy')
+    he_a_inter_cor = np.load('4x_mean_new//HE_A_inter_cor.npy')
+    he_b_inter_cor = np.load('4x_mean_new//HE_B_inter_cor.npy')
+
+    he_lab_inter_cor = get_mean(he_l_inter_cor, he_a_inter_cor, he_b_inter_cor)
+
+    ihc_l_inter_cor = np.load('4x_mean_new//IHC_L_inter_cor.npy')
+    ihc_a_inter_cor = np.load('4x_mean_new//IHC_A_inter_cor.npy')
+    ihc_b_inter_cor = np.load('4x_mean_new//IHC_B_inter_cor.npy')
+
+    ihc_lab_inter_cor = get_mean(ihc_l_inter_cor, ihc_a_inter_cor, ihc_b_inter_cor)
+
+
 
     # """
     #     Descriptive analysis
@@ -180,23 +206,46 @@ if __name__ == '__main__':
     Descriptive analysis
     """
 
+    # descriptive_analysis(he_lab_cor, 'HE LAB', 'cor')
+    # descriptive_analysis(he_lab_norm_cor, 'HE LAB normalized', 'cor')
+
+    # descriptive_analysis(ihc_lab_cor, 'IHC LAB', 'cor')
+    # descriptive_analysis(ihc_lab_norm_cor, 'IHC LAB normalized', 'cor')
+
+    # descriptive_analysis(he_lab_bha, 'HE LAB', 'bha')
+    # descriptive_analysis(he_lab_inter_bha, 'HE LAB INTER', 'bha')
+    #
+    # descriptive_analysis(ihc_lab_bha, 'IHC LAB', 'bha')
+    # descriptive_analysis(ihc_lab_inter_bha, 'IHC LAB INTER', 'bha')
+
     descriptive_analysis(he_lab_cor, 'HE LAB', 'cor')
-    descriptive_analysis(he_lab_norm_cor, 'HE LAB normalized', 'cor')
+    descriptive_analysis(he_lab_inter_cor, 'HE LAB INTER', 'cor')
 
     descriptive_analysis(ihc_lab_cor, 'IHC LAB', 'cor')
-    descriptive_analysis(ihc_lab_norm_cor, 'IHC LAB normalized', 'cor')
+    descriptive_analysis(ihc_lab_inter_cor, 'IHC LAB INTER', 'cor')
 
     """
     Before / After normalization comparison       
     """
 
-    comparison_analysis(he_lab_cor, he_lab_norm_cor, 'cor')
-    comparison_analysis(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
+    # comparison_analysis(he_lab_cor, he_lab_norm_cor, 'cor')
+    # comparison_analysis(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
+
+    # comparison_analysis(he_lab_bha, he_lab_inter_bha, 'bha')
+    # comparison_analysis(ihc_lab_bha, ihc_lab_inter_bha, 'bha')
+
+    comparison_analysis(he_lab_cor, he_lab_inter_cor, 'cor')
+    comparison_analysis(ihc_lab_cor, ihc_lab_inter_cor, 'cor')
 
     """
     Statistical tests of significance
     """
 
-    statistic_tests(he_lab_cor, he_lab_norm_cor, 'cor')
-    statistic_tests(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
+    # statistic_tests(he_lab_cor, he_lab_norm_cor, 'cor')
+    # statistic_tests(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
 
+    # statistic_tests(he_lab_bha, he_lab_inter_bha, 'bha')
+    # statistic_tests(ihc_lab_bha, ihc_lab_inter_bha, 'bha')
+
+    statistic_tests(he_lab_cor, he_lab_inter_cor, 'cor')
+    statistic_tests(ihc_lab_cor, ihc_lab_inter_cor, 'cor')

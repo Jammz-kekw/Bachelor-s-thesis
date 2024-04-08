@@ -212,8 +212,8 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
 
     # Image
     plt.suptitle(title + " | " + tag)
-    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x_new\\{name}_{title}.png')
-    plt.show()
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x_new\\{name}_{title}_inter.png')
+    # plt.show()
     plt.close()
 
 
@@ -374,7 +374,10 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         # visualise(original_rgb, generated_rgb, normalized_rgb,
         #           generated_cor, normalized_cor, tag, 'cor')
 
-        # TODO - interpolaciu
+        visualise(original_rgb, generated_rgb, interpolation_rgb,
+                  generated_bha, interpolation_bha, tag, 'cor')
+
+        # TODO - interpolacia visializacia?
 
         # TODO - spajanie 16 to 1
 
@@ -399,31 +402,35 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
         inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
 
-        inter_b_mean_cor.append(np.mean(interpolation_cor[0]))
+        inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
         inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
         inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
 
-
-
-
-    np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
-    np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
-    np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
-
-    np.save(f'{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
-    np.save(f'{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
-    np.save(f'{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
-
-
-    np.save(f'{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
-    np.save(f'{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
-    np.save(f'{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
-
-    np.save(f'{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
-    np.save(f'{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
-    np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
-
-    # TODO - doplnit este tu interpolaciu
+    # np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
+    # np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
+    # np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
+    #
+    # np.save(f'{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
+    # np.save(f'{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
+    # np.save(f'{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
+    #
+    #
+    # np.save(f'{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
+    # np.save(f'{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
+    # np.save(f'{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
+    #
+    # np.save(f'{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
+    # np.save(f'{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
+    # np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
+    #
+    # np.save(f'{stain_type}_L_inter_bha.npy', inter_l_mean_bha)
+    # np.save(f'{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
+    # np.save(f'{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
+    #
+    np.save(f'{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
+    np.save(f'{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
+    np.save(f'{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
+    print('saved')
 
 
 def visualise_histograms(original_image, generated_image):
