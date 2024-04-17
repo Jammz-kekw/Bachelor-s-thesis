@@ -57,13 +57,15 @@ class UNet(nn.Module):
 
 # Custom dataset class to load and preprocess images
 class CustomDataset(Dataset):
-    def __init__(self, directory, transform=None, limit=None, num_classes=4, grid_size=16):
+    def __init__(self, directory, transform=None, limit=None, num_classes=4, grid_size=16, get_labels=True):
         self.directory = directory
         self.transform = transform
         self.limit = limit
         self.num_classes = num_classes
         self.grid_size = grid_size
+        self.get_labels = get_labels
         self.images, self.labels = self.load_images()
+
 
     def load_images(self):
         images = []
@@ -75,9 +77,10 @@ class CustomDataset(Dataset):
                 image = read_image(os.path.join(self.directory, filename)).float()
                 images.append(image)
 
-                label = self.extract_label(filename)
-                label_matrix = self.create_label_matrix(label)
-                labels.append(label_matrix)
+                if self.get_labels:
+                    label = self.extract_label(filename)
+                    label_matrix = self.create_label_matrix(label)
+                    labels.append(label_matrix)
 
                 loaded_count += 1
                 if self.limit is not None and loaded_count >= self.limit:
@@ -98,7 +101,11 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         image = self.images[idx]
-        label_matrix = self.labels[idx]
+
+        if self.labels:
+            label_matrix = self.labels[idx]
+        else:
+            label_matrix = []
 
         if self.transform:
             image = self.transform(image)
@@ -125,13 +132,12 @@ def process_data(directory, batch_size, limit=None):
 
 if __name__ == '__main__':
     source_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\sliced\\IHC_train"
-    test_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\sliced\\IHC_test"
 
     print("Num GPUs Available: ", torch.cuda.device_count())
 
     # Load and preprocess data
     batch_size = 16
-    dataloader = process_data(source_dir, batch_size, limit=5000)
+    dataloader = process_data(source_dir, batch_size, limit=10000)
 
     # Define the model
     model = UNet()
@@ -146,8 +152,6 @@ if __name__ == '__main__':
     num_epochs = 10
     for epoch in range(num_epochs):
         for images, labels in dataloader:
-            # labels = labels.unsqueeze(0)
-
             images, labels = images.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(images)
@@ -158,4 +162,5 @@ if __name__ == '__main__':
         print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}")
 
     # Save the model
-    torch.save(model.state_dict(), 'unet_model.pth')
+    print("Finished, saving model")
+    torch.save(model.state_dict(), 'cnn_models/unet_model.pth')
