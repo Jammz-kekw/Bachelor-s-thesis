@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
     # Load and preprocess data
     batch_size = 16
-    dataloader = process_data(source_dir, batch_size, limit=10000)
+    dataloader = process_data(source_dir, batch_size, limit=20000)
 
     # Define the model
     model = UNet()
