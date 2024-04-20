@@ -1,5 +1,6 @@
 import os
 import torch.nn.functional as F
+import cv2
 import numpy as np
 import torch
 import torch.nn as nn
@@ -66,7 +67,6 @@ class CustomDataset(Dataset):
         self.get_labels = get_labels
         self.images, self.labels = self.load_images()
 
-
     def load_images(self):
         images = []
         labels = []
@@ -74,13 +74,17 @@ class CustomDataset(Dataset):
 
         for filename in os.listdir(self.directory):
             if filename.endswith('.png') or filename.endswith('.jpg'):
-                image = read_image(os.path.join(self.directory, filename)).float()
+                # image = read_image(os.path.join(self.directory, filename))
+                image = cv2.imread(os.path.join(self.directory, filename))
+                image = image.flatten()
+
                 images.append(image)
 
                 if self.get_labels:
                     label = self.extract_label(filename)
-                    label_matrix = self.create_label_matrix(label)
-                    labels.append(label_matrix)
+                    # label_matrix = self.create_label_matrix(label)
+                    # labels.append(label_matrix)
+                    labels.append(label)
 
                 loaded_count += 1
                 if self.limit is not None and loaded_count >= self.limit:
@@ -102,15 +106,12 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         image = self.images[idx]
 
-        if self.labels:
-            label_matrix = self.labels[idx]
-        else:
-            label_matrix = []
+        label = self.labels[idx]
 
         if self.transform:
             image = self.transform(image)
 
-        return image, label_matrix
+        return image, label
 
 
 # Preprocess function for images
@@ -137,7 +138,7 @@ if __name__ == '__main__':
 
     # Load and preprocess data
     batch_size = 16
-    dataloader = process_data(source_dir, batch_size, limit=20000)
+    dataloader = process_data(source_dir, batch_size, limit=1000)
 
     # Define the model
     model = UNet()
