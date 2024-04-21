@@ -20,8 +20,9 @@ def load_data(data_dir, max_images=None):
     num_loaded = 0
 
     for filename in os.listdir(data_dir):
-        if filename.endswith('.jpg'):
+        if filename.endswith('.jpg') or filename.endswith('.png'):
             image = Image.open(os.path.join(data_dir, filename))
+            image = image.resize((256, 256))
             images.append(np.array(image))
 
             label = extract_label(filename)
@@ -43,6 +44,7 @@ def preprocess_images(images):
 
 # Step 3: Split the Dataset
 data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\sliced\IHC_train"
+# data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
 images, labels = load_data(data_dir, max_images=10000)
 images = preprocess_images(images)
 x_train, x_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=42)
@@ -71,15 +73,21 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(32 * 64 * 64, 128)  # Assuming input image size is 256x256
-        self.fc2 = nn.Linear(128, num_classes)
+        self.conv3 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
+        self.conv4 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(128 * 16 * 16, 256)  # Adjust input size based on image dimensions
+        self.fc2 = nn.Linear(256, num_classes)
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
         x = torch.max_pool2d(x, kernel_size=2, stride=2)
         x = torch.relu(self.conv2(x))
         x = torch.max_pool2d(x, kernel_size=2, stride=2)
-        x = x.view(-1, 32 * 64 * 64)  # Assuming input image size is 256x256
+        x = torch.relu(self.conv3(x))
+        x = torch.max_pool2d(x, kernel_size=2, stride=2)
+        x = torch.relu(self.conv4(x))
+        x = torch.max_pool2d(x, kernel_size=2, stride=2)
+        x = x.view(-1, 128 * 16 * 16)  # Adjust input size based on image dimensions
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
@@ -95,15 +103,14 @@ transform = transforms.Compose([
 # Step 6: Create Data Loaders
 train_dataset = CustomDataset(x_train, y_train, transform=transform)
 test_dataset = CustomDataset(x_test, y_test, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=16)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32)
 
 
 model = CNN(num_classes=4)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-# TODO - napchaj tam tie origo fotky a na ne sa da resize na 256x256 a potom skusit run
-#        pripadne este hyperparameter tuning skusit, to by mohlo byt fajne
+
 
 # Training loop
 num_epochs = 10

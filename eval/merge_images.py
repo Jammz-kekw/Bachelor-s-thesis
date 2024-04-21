@@ -121,10 +121,10 @@ if __name__ == '__main__':
 
     merge_images_name(orig_he_tr1, gen_he_tr1, "TR_1", "Original H&E", "Generovany H&E")
     merge_images_name(orig_he_tr2, gen_he_tr2, "TR_2", "Original H&E", "Generovany H&E")
-    merge_images_name(orig_he_tr1, gen_he_tr3, "TR_3", "Original H&E", "Generovany H&E")
-    merge_images_name(orig_he_tr1, gen_he_tr4, "TR_4", "Original H&E", "Generovany H&E")
+    merge_images_name(orig_he_tr3, gen_he_tr3, "TR_3", "Original H&E", "Generovany H&E")
+    merge_images_name(orig_he_tr4, gen_he_tr4, "TR_4", "Original H&E", "Generovany H&E")
 
-    merge_images_name(orig_ihc_tr3, gen_ihc_tr1, "TR_5", "Original IHC", "Generovany IHC")
+    merge_images_name(orig_ihc_tr1, gen_ihc_tr1, "TR_5", "Original IHC", "Generovany IHC")
     merge_images_name(orig_ihc_tr2, gen_ihc_tr2, "TR_6", "Original IHC", "Generovany IHC")
     merge_images_name(orig_ihc_tr3, gen_ihc_tr3, "TR_7", "Original IHC", "Generovany IHC")
     merge_images_name(orig_ihc_tr4, gen_ihc_tr4, "TR_8", "Original IHC", "Generovany IHC")
@@ -139,9 +139,18 @@ if __name__ == '__main__':
     orig_ihc_6 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\orig_ihc\\1318_orig_ihc.png"
     orig_he_7 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\orig_he\\1166_orig_he.png"
     orig_ihc_7 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\orig_ihc\\1166_orig_ihc.png"
+    orig_he_8 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\555_orig_he.png"
+    orig_ihc_8 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\555_orig_ihc.png"
+    orig_he_9 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\789_orig_he.png"
+    orig_ihc_9 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\789_orig_ihc.png"
+    orig_he_10 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\897_orig_he.png"
+    orig_ihc_10 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\897_orig_ihc.png"
 
     merge_images_name(orig_he_3, orig_ihc_3, "sample_3", "H&E", "IHC")
     merge_images_name(orig_he_4, orig_ihc_4, "sample_4", "H&E", "IHC")
     merge_images_name(orig_he_5, orig_ihc_5, "sample_5", "H&E", "IHC")
     merge_images_name(orig_he_6, orig_ihc_6, "sample_6", "H&E", "IHC")
     merge_images_name(orig_he_7, orig_ihc_7, "sample_7", "H&E", "IHC")
+    merge_images_name(orig_he_8, orig_ihc_8, "sample_8", "H&E", "IHC")
+    merge_images_name(orig_he_9, orig_ihc_9, "sample_9", "H&E", "IHC")
+    merge_images_name(orig_he_10, orig_ihc_10, "sample_10", "H&E", "IHC")
