@@ -45,6 +45,31 @@ def color_correction(source: cv2.Mat, target: cv2.Mat) -> cv2.Mat:
     return result
 
 
+def get_mutual_information(original_image, generated_image):
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_LAB2BGR)  # LAB was input
+    generated_image = cv2.cvtColor(generated_image, cv2.COLOR_LAB2BGR)
+
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)  # to grayscale
+    generated_image = cv2.cvtColor(generated_image, cv2.COLOR_BGR2GRAY)
+
+    original_histogram = cv2.calcHist([original_image], [0], None, [256], [0, 256])
+    generated_histogram = cv2.calcHist([generated_image], [0], None, [256], [0, 256])
+
+    joint_histogram = np.histogram2d(original_image.ravel(), generated_image.ravel(), bins=256, range=[[0, 256], [0, 256]])[0]
+
+    marginal_orig_hist = np.sum(joint_histogram, axis=0)
+    marginal_gen_hist = np.sum(joint_histogram, axis=1)
+
+    original_histogram /= np.sum(original_histogram)
+    generated_histogram /= np.sum(generated_histogram)
+    joint_histogram /= np.sum(joint_histogram)
+
+    epsilon = np.finfo(float).eps
+    mutual_information = np.sum(joint_histogram * np.log((joint_histogram + epsilon) / (np.outer(original_histogram, marginal_gen_hist) + epsilon)))
+
+    return mutual_information
+
+
 def compute_values(original_image, generated_image):
     original_patches = split_into_regions(original_image)
     generated_patches = split_into_regions(generated_image)
@@ -239,7 +264,7 @@ def l_channel_normalization(original_lab, generated_lab):
     generated_mean, generated_std = np.mean(generated_l), np.std(generated_l)
 
     normalized_l = (generated_l - generated_mean) * (original_std / generated_std) + original_mean
-    normalized_l = np.clip(normalized_l, 0, 255)  # Just to avoid values out of 8-bit space
+    normalized_l = np.clip(normalized_l, 0, 100)  # Just to avoid values out of 8-bit space
 
     generated_lab[:, :, 0] = normalized_l
 
@@ -314,6 +339,9 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     inter_a_mean_cor = []
     inter_b_mean_cor = []
 
+    gen_mutual_info = []
+    inter_mutual_info = []
+
     for _, (original_image, generated_image) in enumerate(zip(original_files, generated_files)):
         """
             1. rgb -> lab
@@ -356,12 +384,15 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         #
         # plt.show()
 
-        # TODO - tuna sprav vizualizaciu pred a po normalizacii pre histogram - staci to spustit len na poslednom HE
+        # TODO - pridat pocitanie mutual information, vizualizovat to netreba, len nahadzat values a ulozit do .npy
 
         # Get quantitative analysis
         generated_bha, generated_cor = compute_values(original_lab, generated_lab)
         normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
         interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
+
+        gen_mt_info = get_mutual_information(original_lab, generated_lab)
+        inter_mt_info = get_mutual_information(original_lab, interpolation_lab)
 
         # Visualization
         original_rgb = cv2.cvtColor(original_rgb, cv2.COLOR_BGR2RGB)
@@ -377,9 +408,6 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         visualise(original_rgb, generated_rgb, interpolation_rgb,
                   generated_bha, interpolation_bha, tag, 'cor')
 
-        # TODO - interpolacia visializacia?
-
-        # TODO - spajanie 16 to 1
 
         # Add means
         gen_l_mean_bha.append(np.mean(generated_bha[0]))
@@ -406,6 +434,9 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
         inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
 
+        gen_mutual_info.append(gen_mt_info)
+        inter_mutual_info.append(inter_mt_info)
+
     # np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
     # np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
     # np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
@@ -427,9 +458,12 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     # np.save(f'{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
     # np.save(f'{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
     #
-    np.save(f'{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
-    np.save(f'{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
-    np.save(f'{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
+    # np.save(f'{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
+    # np.save(f'{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
+    # np.save(f'{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
+
+    np.save(f'{stain_type}_gen_mt_info.npy', gen_mutual_info)
+    np.save(f'{stain_type}_inter_mt_info.npy', inter_mutual_info)
     print('saved')
 
 
