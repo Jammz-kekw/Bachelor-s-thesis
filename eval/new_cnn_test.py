@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+import random
 import cv2
 import numpy as np
 import torch
@@ -73,8 +74,6 @@ def get_mean(array):
     return mean
 
 
-
-
 def extract_label(file):
     return int(file[11]) if file[6:10] == 'test' else int(file[12])
 
@@ -101,17 +100,18 @@ def load_data(data_dir, max_images=None):
     return np.array(images), np.array(labels)
 
 
-
 def preprocess_images(images):
     images = images.astype(np.float32) / 255.0
     return images
 
 
 class CustomDataset(Dataset):
-    def __init__(self, images, labels, transform=None):
+    def __init__(self, images, labels, flip_h=False, flip_v=False, transform=None):
         self.images = images
         self.labels = labels
         self.transform = transform
+        self.flip_h = flip_h
+        self.flip_v = flip_v
 
     def __len__(self):
         return len(self.images)
@@ -119,13 +119,23 @@ class CustomDataset(Dataset):
     def __getitem__(self, idx):
         image = self.images[idx]
         label = self.labels[idx]
+
         if self.transform:
             image = self.transform(image)
+
+        if self.flip_h:
+            if random.random() < 0.5:
+                image = torch.flip(image, dims=[2])
+
+        if self.flip_v:
+            if random.random() < 0.5:
+                image = torch.flip(image, dims=[1])
+
         return image, label
 
 
 class CNN(nn.Module):
-    def __init__(self, num_classes=4, dropout_prob=0.5):
+    def __init__(self, num_classes=4, dropout_prob=0.5, l2_lambda=0.001):
         super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, stride=1, padding=1)
@@ -134,6 +144,7 @@ class CNN(nn.Module):
         self.fc1 = nn.Linear(128 * 16 * 16, 256)
         self.fc2 = nn.Linear(256, num_classes)
         self.dropout = nn.Dropout(dropout_prob)
+        self.l2_lambda = l2_lambda
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
@@ -156,7 +167,7 @@ if __name__ == "__main__":
     # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
     # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\norm_test"
 
-    images, labels = load_data(data_dir, max_images=15000)
+    images, labels = load_data(data_dir, max_images=12000)
     images = preprocess_images(images)
     images = sort_by_labels_and_normalize(images, labels)
 
@@ -166,18 +177,17 @@ if __name__ == "__main__":
     # Define data augmentation transforms if needed
     transform = transforms.Compose([
         transforms.ToTensor(),  # Convert image to PyTorch tensor
-        # Add more transforms here (e.g., RandomHorizontalFlip, RandomRotation, etc.)
     ])
 
     # Step 6: Create Data Loaders
-    train_dataset = CustomDataset(x_train, y_train, transform=transform)
+    train_dataset = CustomDataset(x_train, y_train, transform=transform, flip_h=True, flip_v=True)
     test_dataset = CustomDataset(x_test, y_test, transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
     model = CNN(num_classes=4)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=model.l2_lambda)
 
     # Training loop
     num_epochs = 10
@@ -206,4 +216,6 @@ if __name__ == "__main__":
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
     accuracy = correct / total
+
+    torch.save(model.state_dict(), 'cnn_models/new_model_L2_flip.pth')
     print(f"Test Accuracy: {accuracy}")
