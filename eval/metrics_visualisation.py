@@ -349,7 +349,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
             3. calculate bhattacharyya and correlation - thus return list of 16 values
                for each channel  
             4. visualise bhattacharyya as 3x4 using green to red gradient
-            5. visualise correlation as 3x4 using yellow to red gradient ? # TODO - try this to see the results nech to each other and then compare them
+            5. visualise correlation as 3x4 using blue to red gradient
         """
 
         image_no = original_image.split('_')[0]
@@ -405,9 +405,8 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         # visualise(original_rgb, generated_rgb, normalized_rgb,
         #           generated_cor, normalized_cor, tag, 'cor')
 
-        visualise(original_rgb, generated_rgb, interpolation_rgb,
-                  generated_bha, interpolation_bha, tag, 'cor')
-
+        # visualise(original_rgb, generated_rgb, interpolation_rgb,
+        #           generated_bha, interpolation_bha, tag, 'cor')
 
         # Add means
         gen_l_mean_bha.append(np.mean(generated_bha[0]))

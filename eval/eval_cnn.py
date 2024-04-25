@@ -2,13 +2,15 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.model_selection import train_test_split
 
-from cnn import CustomDataset, UNet
+from new_cnn_test import CustomDataset, CNN, load_data, preprocess_images, sort_by_labels_and_normalize
 
 
 def evaluate_predictions(model, dataloader):
     all_predictions = []
     all_labels = []
+
     with torch.no_grad():
         for images, labels in dataloader:
             images = images.to(device)
@@ -50,11 +52,15 @@ if __name__ == '__main__':
     test_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\sliced\\IHC_test"
     gan_gen_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\he_to_ihc"
 
-    model = UNet()
-    model.load_state_dict(torch.load('cnn_models/unet_model.pth'))
+    model = CNN()
+    model.load_state_dict(torch.load('cnn_models/new_model_L2_flip.pth'))
     model.eval()
 
-    test_dataset = CustomDataset(test_dir, limit=2000)
+    images, labels = load_data(test_dir)
+    images = preprocess_images(images)
+    images = sort_by_labels_and_normalize(images, labels)
+
+    test_dataset = CustomDataset(images, labels)
     batch_size = 16
     test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
@@ -64,7 +70,7 @@ if __name__ == '__main__':
 
     metrics(predictions, labels)
 
-    gan_data = CustomDataset(gan_gen_dir, get_labels=False)
+    gan_data = CustomDataset(gan_gen_dir)
     gan_dataloader = DataLoader(gan_data, batch_size=batch_size, shuffle=False)
 
     model.eval()
@@ -86,5 +92,3 @@ if __name__ == '__main__':
 
     labels_gan_float = labels_gan.float()
     image_labels = torch.mean(labels_gan_float, dim=(1, 2))
-
-    print(image)

@@ -163,11 +163,11 @@ class CNN(nn.Module):
 
 
 if __name__ == "__main__":
-    data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\sliced\IHC_train"
-    # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
+    # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\sliced\IHC_train"
+    data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
     # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\norm_test"
 
-    images, labels = load_data(data_dir, max_images=12000)
+    images, labels = load_data(data_dir)
     images = preprocess_images(images)
     images = sort_by_labels_and_normalize(images, labels)
 
@@ -217,5 +217,5 @@ if __name__ == "__main__":
             correct += (predicted == labels).sum().item()
     accuracy = correct / total
 
-    torch.save(model.state_dict(), 'cnn_models/new_model_L2_flip.pth')
+    torch.save(model.state_dict(), 'cnn_models/new_model_L2_flip_orig_test.pth')
     print(f"Test Accuracy: {accuracy}")

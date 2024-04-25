@@ -11,6 +11,8 @@ def get_mean(l, a, b):
 def descriptive_analysis(data, tag, metric):
     if metric == 'bha':
         title = "Bhattacharyya distance"
+    elif metric == 'mt':
+        title = "Mutual information"
     else:
         title = "Correlation"
 
@@ -42,6 +44,8 @@ def descriptive_analysis(data, tag, metric):
 def comparison_analysis(before, after, metric):
     if metric == 'bha':
         title = "Bhattacharyya distance"
+    if metric == 'mt':
+        title = "Mutual information"
     else:
         title = "Correlation"
 
@@ -75,7 +79,7 @@ def statistic_tests(before, after, metric):
     # H0 -  Bhattacharyya / Correlation after normalization is NOT significantly different from before normalization
     # H1 -  Bhattacharyya / Correlation after normalization is significantly different from before normalization
 
-    if metric == 'bha':
+    if metric == 'bha' or 'mt':
         alt = 'greater'
     else:
         alt = 'less'
@@ -91,6 +95,15 @@ def statistic_tests(before, after, metric):
         print("Reject the null hypothesis. Results after normalization have improved.")
     else:
         print("Fail to reject the null hypothesis. No significant improvement after normalization.\n\n")
+
+
+def run_analysis(before, after, before_tag, after_tag, metric):
+    descriptive_analysis(before, before_tag, metric)
+    descriptive_analysis(after, after_tag, metric)
+
+    comparison_analysis(before, after, metric)
+
+    statistic_tests(before, after, metric)
 
 
 if __name__ == '__main__':
@@ -176,76 +189,19 @@ if __name__ == '__main__':
 
     ihc_lab_inter_cor = get_mean(ihc_l_inter_cor, ihc_a_inter_cor, ihc_b_inter_cor)
 
-
-
-    # """
-    #     Descriptive analysis
-    # """
-    #
-    # descriptive_analysis(he_lab_bha, 'HE LAB', 'bha')
-    # descriptive_analysis(he_lab_norm_bha, 'HE LAB normalized', 'bha')
-    #
-    # descriptive_analysis(ihc_lab_bha, 'IHC LAB', 'bha')
-    # descriptive_analysis(ihc_lab_norm_bha, 'IHC LAB normalized', 'bha')
-    #
-    # """
-    #     Before / After normalization comparison
-    # """
-    #
-    # comparison_analysis(he_lab_bha, he_lab_norm_bha, 'bha')
-    # comparison_analysis(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
-    #
-    # """
-    #     Statistical tests of significance
-    # """
-    #
-    # statistic_tests(he_lab_bha, he_lab_norm_bha, 'bha')
-    # statistic_tests(ihc_lab_bha, ihc_lab_norm_bha, 'bha')
-
     """
-    Descriptive analysis
+        Load data mutual information
     """
 
-    # descriptive_analysis(he_lab_cor, 'HE LAB', 'cor')
-    # descriptive_analysis(he_lab_norm_cor, 'HE LAB normalized', 'cor')
+    he_gen_mt_info = np.load('4x_mean_new//HE_gen_mt_info.npy')
+    he_inter_mt_info = np.load('4x_mean_new//HE_inter_mt_info.npy')
 
-    # descriptive_analysis(ihc_lab_cor, 'IHC LAB', 'cor')
-    # descriptive_analysis(ihc_lab_norm_cor, 'IHC LAB normalized', 'cor')
-
-    # descriptive_analysis(he_lab_bha, 'HE LAB', 'bha')
-    # descriptive_analysis(he_lab_inter_bha, 'HE LAB INTER', 'bha')
-    #
-    # descriptive_analysis(ihc_lab_bha, 'IHC LAB', 'bha')
-    # descriptive_analysis(ihc_lab_inter_bha, 'IHC LAB INTER', 'bha')
-
-    descriptive_analysis(he_lab_cor, 'HE LAB', 'cor')
-    descriptive_analysis(he_lab_inter_cor, 'HE LAB INTER', 'cor')
-
-    descriptive_analysis(ihc_lab_cor, 'IHC LAB', 'cor')
-    descriptive_analysis(ihc_lab_inter_cor, 'IHC LAB INTER', 'cor')
+    ihc_gen_mt_info = np.load('4x_mean_new//IHC_gen_mt_info.npy')
+    ihc_inter_mt_info = np.load('4x_mean_new//IHC_inter_mt_info.npy')
 
     """
-    Before / After normalization comparison       
+        Run quantitative analysis
     """
 
-    # comparison_analysis(he_lab_cor, he_lab_norm_cor, 'cor')
-    # comparison_analysis(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
-
-    # comparison_analysis(he_lab_bha, he_lab_inter_bha, 'bha')
-    # comparison_analysis(ihc_lab_bha, ihc_lab_inter_bha, 'bha')
-
-    comparison_analysis(he_lab_cor, he_lab_inter_cor, 'cor')
-    comparison_analysis(ihc_lab_cor, ihc_lab_inter_cor, 'cor')
-
-    """
-    Statistical tests of significance
-    """
-
-    # statistic_tests(he_lab_cor, he_lab_norm_cor, 'cor')
-    # statistic_tests(ihc_lab_cor, ihc_lab_norm_cor, 'cor')
-
-    # statistic_tests(he_lab_bha, he_lab_inter_bha, 'bha')
-    # statistic_tests(ihc_lab_bha, ihc_lab_inter_bha, 'bha')
-
-    statistic_tests(he_lab_cor, he_lab_inter_cor, 'cor')
-    statistic_tests(ihc_lab_cor, ihc_lab_inter_cor, 'cor')
+    # run_analysis(he_gen_mt_info, he_inter_mt_info, 'HE gen mt info', 'HE inter mt info', 'mt')
+    run_analysis(ihc_gen_mt_info, ihc_inter_mt_info, 'IHC gen mt info', 'IHC inter mt info', 'mt')
