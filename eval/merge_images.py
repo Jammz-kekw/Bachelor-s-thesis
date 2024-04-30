@@ -3,57 +3,53 @@ import numpy as np
 
 
 def merge_images(image1_path, image2_path, name):
-    # Read the images
+    """
+        Merges two images together with a separator inbetween
+
+        was created for the Google form
+    """
+
     image1 = cv2.imread(image1_path)
     image2 = cv2.imread(image2_path)
 
-    # Create a white strip as a separator
-
     white_square = np.ones((256, 256, 3), dtype=np.uint8) * 255
-
-    # Stack the images vertically with the white strip in between
     merged_image = np.hstack((image1, white_square, image2))
 
     cv2.imwrite(f"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\form\\{name}.png", merged_image)
 
 
 def merge_images_name(image1_path, image2_path, name, text1, text2):
-    # Read the images
+    """
+        Merges two images together with a separator inbetween
+        also puts a label to each image for better reading
+
+        was created for the Google form
+    """
+
     image1 = cv2.imread(image1_path)
     image2 = cv2.imread(image2_path)
 
-    # Create a white square
     white_square_size = (256, 256)
     white_square = np.ones((white_square_size[0], white_square_size[1], 3), dtype=np.uint8) * 255
-
-    # Calculate the width of the combined images and square
     total_width = image1.shape[1] + white_square.shape[1] + image2.shape[1]
-
-    # Create a white strip with the correct width
     white_strip = np.ones((40, total_width, 3), dtype=np.uint8) * 255
 
-    # Calculate text sizes and positions
     font = cv2.FONT_HERSHEY_SIMPLEX
     font_scale = 1
     font_thickness = 2
-    text_color = (0, 0, 0)  # Black color
+    text_color = (0, 0, 0)
     text_size1 = cv2.getTextSize(text1, font, font_scale, font_thickness)[0]
     text_size2 = cv2.getTextSize(text2, font, font_scale, font_thickness)[0]
     text_x1 = (image1.shape[1] - text_size1[0]) // 2  # Center of the first third
     text_x2 = image1.shape[1] + white_square.shape[1] + (image2.shape[1] - text_size2[0]) // 2
     text_y = (white_strip.shape[0] + text_size1[1]) // 2  # Center vertically
 
-    # Write text on the white strip
     cv2.putText(white_strip, text1, (text_x1, text_y), cv2.FONT_HERSHEY_DUPLEX, font_scale, text_color, font_thickness)
     cv2.putText(white_strip, text2, (text_x2, text_y), cv2.FONT_HERSHEY_DUPLEX, font_scale, text_color, font_thickness)
 
-    # Stack the images vertically
     top_images = np.hstack((image1, white_square, image2))
-
-    # Stack the images vertically
     bottom_images = np.vstack((top_images, white_strip))
 
-    # Save the merged image
     cv2.imwrite(f"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\form\\{name}.png", bottom_images)
 
 

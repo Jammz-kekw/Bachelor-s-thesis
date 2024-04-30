@@ -3,9 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-from typing import Any, Dict, List, Optional, Tuple, TypedDict, Union
-from itertools import cycle
-
 
 def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 256]):
     """
@@ -50,6 +47,13 @@ def color_correction(source: cv2.Mat, target: cv2.Mat) -> cv2.Mat:
 
 
 def get_mutual_information(original_image, generated_image):
+    """
+        Used to compute the mutual information of 2 images
+
+        returns the mutual information
+
+    """
+
     original_image = cv2.cvtColor(original_image, cv2.COLOR_LAB2BGR)  # LAB was input
     generated_image = cv2.cvtColor(generated_image, cv2.COLOR_LAB2BGR)
 
@@ -75,6 +79,13 @@ def get_mutual_information(original_image, generated_image):
 
 
 def compute_values(original_image, generated_image):
+    """
+        Used for computing the metrics, in this case Bhattacharyya distance and correlation in LAB channels
+
+        returns values for each channel and respective metrics
+
+    """
+
     original_patches = split_into_regions(original_image)
     generated_patches = split_into_regions(generated_image)
 
@@ -104,13 +115,14 @@ def compute_values(original_image, generated_image):
 
 def visualise(original, generated, normalized, generated_lab, normalized_lab, tag, metric):
     """
+        Puts computed data in a pyplot in a 4x3 grid for visual comparison with values
+
             |  orig  |  generated  |  normalized  |
             |--------|-------------|--------------|
             |    x   |      l      |       l      |
             |    x   |      a      |       a      |
             |    x   |      b      |       b      |
 
-            4x3
     """
 
     plt.close('all')
@@ -247,6 +259,11 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
 
 
 def split_into_regions(image):
+    """
+        Splits image into smaller patches - from 1024x1024 to 256x256
+
+    """
+
     patch_size = 64
 
     patches = []
@@ -261,6 +278,11 @@ def split_into_regions(image):
 
 
 def l_channel_normalization(original_lab, generated_lab):
+    """
+        Used to normalize the L channel in generated image towards the original image
+
+    """
+
     original_l = original_lab[:, :, 0]
     generated_l = generated_lab[:, :, 0]
 
@@ -268,7 +290,7 @@ def l_channel_normalization(original_lab, generated_lab):
     generated_mean, generated_std = np.mean(generated_l), np.std(generated_l)
 
     normalized_l = (generated_l - generated_mean) * (original_std / generated_std) + original_mean
-    normalized_l = np.clip(normalized_l, 0, 100)  # Just to avoid values out of 8-bit space
+    normalized_l = np.clip(normalized_l, 0, 100)
 
     generated_lab[:, :, 0] = normalized_l
 
@@ -278,6 +300,11 @@ def l_channel_normalization(original_lab, generated_lab):
 
 
 def get_channels(patch):
+    """
+        Used to extract LAB channels individually from image
+
+    """
+
     l_channel = cv2.calcHist([patch], [0], None, [256], [0, 256])
     a_channel = cv2.calcHist([patch], [1], None, [256], [0, 256])
     b_channel = cv2.calcHist([patch], [2], None, [256], [0, 256])
@@ -290,6 +317,11 @@ def get_channels(patch):
 
 
 def get_bhattacharyya(original, generated):
+    """
+        Used to compute the Bhattacharyya distance
+
+    """
+
     l_orig, a_orig, b_orig = get_channels(original)
     l_gen, a_gen, b_gen = get_channels(generated)
 
@@ -301,6 +333,11 @@ def get_bhattacharyya(original, generated):
 
 
 def get_correlation(original, generated):
+    """
+        Used to compute the correlation
+
+    """
+
     l_orig, a_orig, b_orig = get_channels(original)
     l_gen, a_gen, b_gen = get_channels(generated)
 
@@ -319,6 +356,14 @@ def load_image(name, folder):
 
 
 def run_pairs(original_files, generated_files, original_path, generated_path, stain_type):
+    """
+        Driver code to iterate through the directories
+
+        NOTE: most of the code is not in use in order to not overwrite existing results and to speed up
+              the computing of new metrics
+
+    """
+
     gen_l_mean_bha = []
     gen_a_mean_bha = []
     gen_b_mean_bha = []
@@ -441,6 +486,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         norm_mutual_info.append(norm_mt_info)
         inter_mutual_info.append(inter_mt_info)
 
+    # Save
     # np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
     # np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
     # np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
@@ -470,17 +516,6 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     np.save(f'{stain_type}_norm_mt_info.npy', norm_mutual_info)
     # np.save(f'{stain_type}_inter_mt_info.npy', inter_mutual_info)
     print('saved')
-
-
-def visualise_histograms(original_image, generated_image):
-    orig_l, orig_a, orig_b = get_channels(original_image)
-    gen_l, gen_a, gen_b = get_channels(generated_image)
-
-    orig_lab = orig_l + orig_a + orig_b
-    orig_lab /= orig_lab.sum()
-
-    gen_lab = gen_l + gen_a + gen_b
-    gen_lab /= gen_lab.sum()
 
 
 if __name__ == '__main__':

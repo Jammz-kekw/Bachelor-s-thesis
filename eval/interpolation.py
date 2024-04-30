@@ -4,15 +4,16 @@ import numpy as np
 
 def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 256]):
     """
-    Calculates the histogram for each channel of the given image.
+        Calculates the histogram for each channel of the given image. BRG format, tue to cv2
+
     """
     hist_channels = [cv2.calcHist([image], [i], None, histSize, ranges) for i in channels]
     return hist_channels
 
 
-def color_correction(source, target):  # source - tento menim; target - podla tohoto menim
+def color_correction(source, target):  # source - image to correct; target - correction template
     """
-        Prevztatý kód
+        Prevzatý kód
     """
 
     """
@@ -48,17 +49,17 @@ def color_correction(source, target):  # source - tento menim; target - podla to
 
 
 if __name__ == '__main__':
-    orig_he_1 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1320_orig_he.png"
-    gen_he_1 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1320_ihc_to_he.png"
+    orig_he_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1320_orig_he.png"
+    gen_he_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1320_ihc_to_he.png"
 
-    orig_he_2 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1082_orig_he.png"
-    gen_he_2 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1082_ihc_to_he.png"
+    orig_he_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1082_orig_he.png"
+    gen_he_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1082_ihc_to_he.png"
 
-    orig_ihc_1 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\858_orig_ihc.png"
-    gen_ihc_1 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\885_he_to_ihc.png"
+    orig_ihc_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\858_orig_ihc.png"
+    gen_ihc_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\885_he_to_ihc.png"
 
-    orig_ihc_2 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\1792_orig_ihc.png"
-    gen_ihc_2 = "D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\1792_he_to_ihc.png"
+    orig_ihc_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\1792_orig_ihc.png"
+    gen_ihc_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\1792_he_to_ihc.png"
 
     inter_he_1 = color_correction(gen_he_1, orig_he_1)
     inter_he_2 = color_correction(gen_he_2, orig_he_1)
