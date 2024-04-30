@@ -340,6 +340,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     inter_b_mean_cor = []
 
     gen_mutual_info = []
+    norm_mutual_info = []
     inter_mutual_info = []
 
     for _, (original_image, generated_image) in enumerate(zip(original_files, generated_files)):
@@ -384,14 +385,13 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         #
         # plt.show()
 
-        # TODO - pridat pocitanie mutual information, vizualizovat to netreba, len nahadzat values a ulozit do .npy
-
         # Get quantitative analysis
-        generated_bha, generated_cor = compute_values(original_lab, generated_lab)
-        normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
-        interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
+        # generated_bha, generated_cor = compute_values(original_lab, generated_lab)
+        # normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
+        # interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
 
         gen_mt_info = get_mutual_information(original_lab, generated_lab)
+        norm_mt_info = get_mutual_information(original_lab, normalized_lab)
         inter_mt_info = get_mutual_information(original_lab, interpolation_lab)
 
         # Visualization
@@ -409,31 +409,32 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         #           generated_bha, interpolation_bha, tag, 'cor')
 
         # Add means
-        gen_l_mean_bha.append(np.mean(generated_bha[0]))
-        gen_a_mean_bha.append(np.mean(generated_bha[1]))
-        gen_b_mean_bha.append(np.mean(generated_bha[2]))
-
-        norm_l_mean_bha.append(np.mean(normalized_bha[0]))
-        norm_a_mean_bha.append(np.mean(normalized_bha[1]))
-        norm_b_mean_bha.append(np.mean(normalized_bha[2]))
-
-        gen_l_mean_cor.append(np.mean(generated_cor[0]))
-        gen_a_mean_cor.append(np.mean(generated_cor[1]))
-        gen_b_mean_cor.append(np.mean(generated_cor[2]))
-
-        norm_l_mean_cor.append(np.mean(normalized_cor[0]))
-        norm_a_mean_cor.append(np.mean(normalized_cor[1]))
-        norm_b_mean_cor.append(np.mean(normalized_cor[2]))
-
-        inter_l_mean_bha.append(np.mean(interpolation_bha[0]))
-        inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
-        inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
-
-        inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
-        inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
-        inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
+        # gen_l_mean_bha.append(np.mean(generated_bha[0]))
+        # gen_a_mean_bha.append(np.mean(generated_bha[1]))
+        # gen_b_mean_bha.append(np.mean(generated_bha[2]))
+        #
+        # norm_l_mean_bha.append(np.mean(normalized_bha[0]))
+        # norm_a_mean_bha.append(np.mean(normalized_bha[1]))
+        # norm_b_mean_bha.append(np.mean(normalized_bha[2]))
+        #
+        # gen_l_mean_cor.append(np.mean(generated_cor[0]))
+        # gen_a_mean_cor.append(np.mean(generated_cor[1]))
+        # gen_b_mean_cor.append(np.mean(generated_cor[2]))
+        #
+        # norm_l_mean_cor.append(np.mean(normalized_cor[0]))
+        # norm_a_mean_cor.append(np.mean(normalized_cor[1]))
+        # norm_b_mean_cor.append(np.mean(normalized_cor[2]))
+        #
+        # inter_l_mean_bha.append(np.mean(interpolation_bha[0]))
+        # inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
+        # inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
+        #
+        # inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
+        # inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
+        # inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
 
         gen_mutual_info.append(gen_mt_info)
+        norm_mutual_info.append(norm_mt_info)
         inter_mutual_info.append(inter_mt_info)
 
     # np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
@@ -461,8 +462,9 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
     # np.save(f'{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
     # np.save(f'{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
 
-    np.save(f'{stain_type}_gen_mt_info.npy', gen_mutual_info)
-    np.save(f'{stain_type}_inter_mt_info.npy', inter_mutual_info)
+    # np.save(f'{stain_type}_gen_mt_info.npy', gen_mutual_info)
+    np.save(f'{stain_type}_norm_mt_info.npy', norm_mutual_info)
+    # np.save(f'{stain_type}_inter_mt_info.npy', inter_mutual_info)
     print('saved')
 
 

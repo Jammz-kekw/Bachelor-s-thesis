@@ -79,7 +79,7 @@ def statistic_tests(before, after, metric):
     # H0 -  Bhattacharyya / Correlation after normalization is NOT significantly different from before normalization
     # H1 -  Bhattacharyya / Correlation after normalization is significantly different from before normalization
 
-    if metric == 'bha' or 'mt':
+    if metric == ('bha' or 'mt'):
         alt = 'greater'
     else:
         alt = 'less'
@@ -194,9 +194,11 @@ if __name__ == '__main__':
     """
 
     he_gen_mt_info = np.load('4x_mean_new//HE_gen_mt_info.npy')
+    he_norm_mt_info = np.load('4x_mean_new//HE_norm_mt_info.npy')
     he_inter_mt_info = np.load('4x_mean_new//HE_inter_mt_info.npy')
 
     ihc_gen_mt_info = np.load('4x_mean_new//IHC_gen_mt_info.npy')
+    ihc_norm_mt_info = np.load('4x_mean_new//IHC_norm_mt_info.npy')
     ihc_inter_mt_info = np.load('4x_mean_new//IHC_inter_mt_info.npy')
 
     """
@@ -204,4 +206,7 @@ if __name__ == '__main__':
     """
 
     # run_analysis(he_gen_mt_info, he_inter_mt_info, 'HE gen mt info', 'HE inter mt info', 'mt')
-    run_analysis(ihc_gen_mt_info, ihc_inter_mt_info, 'IHC gen mt info', 'IHC inter mt info', 'mt')
+    # run_analysis(ihc_gen_mt_info, ihc_inter_mt_info, 'IHC gen mt info', 'IHC inter mt info', 'mt')
+
+    # run_analysis(he_gen_mt_info, he_norm_mt_info, 'HE gen mt info', 'HE norm mt info', 'mt')
+    run_analysis(ihc_gen_mt_info, ihc_norm_mt_info, 'HE gen mt info', 'IHC norm mt info', 'mt')

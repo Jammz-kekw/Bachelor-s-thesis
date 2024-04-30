@@ -10,6 +10,8 @@ import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 from PIL import Image
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+import copy
 
 
 def sort_by_labels_and_normalize(images, labels):
@@ -163,11 +165,11 @@ class CNN(nn.Module):
 
 
 if __name__ == "__main__":
-    # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\sliced\IHC_train"
-    data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
+    data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\sliced\IHC_train"
+    # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\ihc_merged"
     # data_dir = r"D:\FIIT\Bachelor-s-thesis\Dataset\norm_test"
 
-    images, labels = load_data(data_dir)
+    images, labels = load_data(data_dir, max_images=12000)
     images = preprocess_images(images)
     images = sort_by_labels_and_normalize(images, labels)
 
@@ -185,12 +187,20 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
+    # Define model, criterion, optimizer
     model = CNN(num_classes=4)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=model.l2_lambda)
 
+    # Define scheduler and early stopping criteria
+    scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=5, factor=0.1)
+    best_model_weights = copy.deepcopy(model.state_dict())
+    best_loss = float('inf')
+    early_stopping_patience = 10
+    early_stopping_counter = 0
+
     # Training loop
-    num_epochs = 10
+    num_epochs = 50  # Increase number of epochs
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -203,19 +213,45 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
-        print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {running_loss/len(train_loader)}")
+        epoch_loss = running_loss / len(train_loader)
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {epoch_loss}")
 
-    # Evaluation
-    model.eval()
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for images, labels in test_loader:
-            outputs = model(images)
-            _, predicted = torch.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-    accuracy = correct / total
+        # Validation
+        model.eval()
+        val_loss = 0.0
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for images, labels in test_loader:
+                outputs = model(images)
+                _, predicted = torch.max(outputs, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                labels = labels.long()
+                val_loss += criterion(outputs, labels).item()
+        val_loss /= len(test_loader)
+        accuracy = correct / total
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Validation Loss: {val_loss}, Accuracy: {accuracy}")
 
-    torch.save(model.state_dict(), 'cnn_models/new_model_L2_flip_orig_test.pth')
-    print(f"Test Accuracy: {accuracy}")
+        # Update learning rate scheduler
+        scheduler.step(val_loss)
+
+        # Update best model
+        if val_loss < best_loss:
+            best_loss = val_loss
+            best_model_weights = copy.deepcopy(model.state_dict())
+            early_stopping_counter = 0
+        else:
+            early_stopping_counter += 1
+            if early_stopping_counter >= early_stopping_patience:
+                print("Early stopping triggered.")
+                break
+
+    # Load best model weights
+    model.load_state_dict(best_model_weights)
+
+    # Save model
+    torch.save(model.state_dict(), 'cnn_models/best_model.pth')
+
+
+
