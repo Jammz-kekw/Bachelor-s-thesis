@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 from typing import Tuple
 import os
 import javabridge

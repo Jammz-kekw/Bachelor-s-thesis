@@ -12,6 +12,10 @@ def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 25
 
 def color_correction(source, target):  # source - tento menim; target - podla tohoto menim
     """
+        Prevztatý kód
+    """
+
+    """
     Metóda slúži na korekciu farieb pomocou eCDF. Najskôr si vypočítame histogram pre každý kanál `source` a `target` obrázku.
     Následne vypočítame eCDF pre každý histogram všetkých kanálov oboch obrázkov. Nakoniec použijeme lineárnu interpoláciu
     na namapovanie `source` obrázku do `target` obrázku.

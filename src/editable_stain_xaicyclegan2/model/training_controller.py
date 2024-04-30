@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import itertools
 from typing import Callable, Union
 

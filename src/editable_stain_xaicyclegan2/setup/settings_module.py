@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 # create a data class that ingests a file with the following structure:
 # <name>=<value> where <value> can either be a "string" or a number
 # the class creates properties for each name and assigns the value to it

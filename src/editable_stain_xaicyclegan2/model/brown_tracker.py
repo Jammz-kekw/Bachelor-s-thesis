@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 from editable_stain_xaicyclegan2.setup.logging_utils import RunningMeanStackFast
 from torch import Tensor
 
@@ -26,3 +30,4 @@ class HistoDataTracker:
             return True
 
         return False
+

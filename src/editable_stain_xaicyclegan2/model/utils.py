@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import random
 
 from torch import cat, unsqueeze

@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import itertools
 
 import streamlit

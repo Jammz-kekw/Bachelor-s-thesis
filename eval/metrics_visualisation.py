@@ -17,6 +17,10 @@ def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 25
 
 def color_correction(source: cv2.Mat, target: cv2.Mat) -> cv2.Mat:
     """
+        Prevzatý kód
+    """
+
+    """
     Metóda slúži na korekciu farieb pomocou eCDF. Najskôr si vypočítame histogram pre každý kanál `source` a `target` obrázku.
     Následne vypočítame eCDF pre každý histogram všetkých kanálov oboch obrázkov. Nakoniec použijeme lineárnu interpoláciu
     na namapovanie `source` obrázku do `target` obrázku.
@@ -480,11 +484,11 @@ def visualise_histograms(original_image, generated_image):
 
 
 if __name__ == '__main__':
-    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
-    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
+    orig_he_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
+    ihc_to_he_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
 
-    orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
-    he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
+    orig_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
+    he_to_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
 
     orig_he_files = os.listdir(orig_he_folder_path)
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)

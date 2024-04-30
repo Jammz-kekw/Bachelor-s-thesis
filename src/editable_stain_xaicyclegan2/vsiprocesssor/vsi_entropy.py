@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 from skimage.filters.rank import entropy
 from skimage.morphology import disk
 from cv2 import COLOR_BGR2GRAY, cvtColor

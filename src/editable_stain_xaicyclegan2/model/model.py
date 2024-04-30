@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import torch
 import torch.nn.functional as F
 import kornia

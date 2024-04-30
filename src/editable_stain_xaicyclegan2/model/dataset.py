@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 from PIL import Image
 import kornia.color
 import torch.utils.data as data

@@ -7,6 +7,13 @@ from matplotlib.colors import LinearSegmentedColormap
 
 
 def split_image(image, patch_size):
+    """
+        Used to split image into smaller patches of chosen size
+
+        returns the patches in a list
+
+    """
+
     patches = []
     height, width = image.shape[:2]
 
@@ -19,6 +26,11 @@ def split_image(image, patch_size):
 
 
 def visualise_split(patch):
+    """
+        Used to visualise image split into patches in a grid
+
+    """
+
     i = 1
     for each in patch:
         plt.subplot(4, 4, i)
@@ -29,6 +41,13 @@ def visualise_split(patch):
 
 
 def calculate_mean_mutual_information(image1, image2, patch_size):
+    """
+        Used to calculate mutual information from the patches
+
+        returns mean mutual information
+
+    """
+
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
 
@@ -49,6 +68,13 @@ def calculate_mean_mutual_information(image1, image2, patch_size):
 
 
 def get_bhattacharyya(image1, image2):
+    """
+        Used to calculate bhattacharyya distance
+
+        returns bhattacharyya distance for L, A and B channels
+
+    """
+
     hist_gt_L = cv2.calcHist([image1], [0], None, [256], [0, 256])
     hist_gt_A = cv2.calcHist([image1], [1], None, [256], [0, 256])
     hist_gt_B = cv2.calcHist([image1], [2], None, [256], [0, 256])
@@ -73,11 +99,19 @@ def get_bhattacharyya(image1, image2):
 
 
 def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rgb, name, image2_normalized_lab):
+    """
+        Used to calculate bhattacharyya distance in patches
+
+        then the values were visualised using pyplot, main point is to show the difference
+        in computed values before and after normalization
+
+        returns mean values from the computed bhattacharyya
+
+    """
+
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
     patches2_normalized = split_image(image2_normalized_lab, patch_size)
-
-    # TODO - toto potom ako u ludi generalizovat do funkcie :)
 
     bhattacharyya_values_L = []
     bhattacharyya_values_A = []
@@ -106,8 +140,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.figure(figsize=(16, 9))
     colors = [(0, 'green'), (0.3, 'lime'), (0.5, 'yellow'), (0.6, 'gold'), (0.8, 'orange'), (1, 'red')]
 
-    # Create the custom colormap
-    cmap = LinearSegmentedColormap.from_list('excel_heatmap', colors)
+    cmap = LinearSegmentedColormap.from_list('excel_heatmap', colors)  # custom color map
     cmap = 'autumn'
 
     mean_L = np.mean(bhattacharyya_values_L)
@@ -126,13 +159,19 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     grid_values_A_norm = np.array(bhattacharyya_values_A_norm).reshape((4, 4))
     grid_values_B_norm = np.array(bhattacharyya_values_B_norm).reshape((4, 4))
 
-    # Plot the grid with the specified colormap
+    """
+        Following code is used to create individual subplots
+        
+        subplots are then merged to visualise the difference between values of generated and normalized images
+        
+    """
+
     plt.subplot(3, 3, 4)
     plt.imshow(grid_values_L, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
     plt.title('Bhattacharyya L heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_L.shape[0]):
         for j in range(grid_values_L.shape[1]):
@@ -142,9 +181,9 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 5)
     plt.imshow(grid_values_A, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya A heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.title('Bhattacharyya A color map')
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_A.shape[0]):
         for j in range(grid_values_A.shape[1]):
@@ -154,9 +193,9 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 6)
     plt.imshow(grid_values_B, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya B heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.title('Bhattacharyya B color map')
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_B.shape[0]):
         for j in range(grid_values_B.shape[1]):
@@ -167,9 +206,9 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 7)
     plt.imshow(grid_values_L_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya L normalized heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.title('Bhattacharyya L normalized color map')
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_L_norm.shape[0]):
         for j in range(grid_values_L_norm.shape[1]):
@@ -179,9 +218,9 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 8)
     plt.imshow(grid_values_A_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya A normalized heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.title('Bhattacharyya A normalized color map')
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_A_norm.shape[0]):
         for j in range(grid_values_A_norm.shape[1]):
@@ -192,8 +231,8 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.imshow(grid_values_B_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
     plt.title('Bhattacharyya B normalized heatmap')
-    plt.xticks(np.arange(4))  # Set the x-axis ticks
-    plt.yticks(np.arange(4))  # Set the y-axis ticks
+    plt.xticks(np.arange(4))
+    plt.yticks(np.arange(4))
 
     for i in range(grid_values_B_norm.shape[0]):
         for j in range(grid_values_B_norm.shape[1]):
@@ -207,7 +246,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
 
     plt.subplot(3, 3, 3)
     plt.imshow(cv2.cvtColor(image2_rgb, cv2.COLOR_BGR2RGB))
-    plt.title('Translated')
+    plt.title('Generated')
     plt.axis('off')
 
     plt.subplot(3, 3, 2)
@@ -232,6 +271,11 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
 
 
 def visualize_images(image_gt, image_translated, run_no):
+    """
+        Used to visualise ground-truth and generated image next to each other, mostly for visual comparison
+
+    """
+
     img_gt = cv2.imread(image_gt)
     img_translated = cv2.imread(image_translated)
 
@@ -241,7 +285,7 @@ def visualize_images(image_gt, image_translated, run_no):
 
     plt.subplot(1, 2, 2)
     plt.imshow(cv2.cvtColor(img_translated, cv2.COLOR_BGR2RGB))
-    plt.title(f'{run_no} - translated')
+    plt.title(f'{run_no} - generated')
 
     plt.show()
 
@@ -249,6 +293,10 @@ def visualize_images(image_gt, image_translated, run_no):
 def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L, hist_translated_A, hist_translated_B,
                              img_gt, img_translated, title, mean_normalized_mi, bhattacharyya_coefficient_L,
                              bhattacharyya_coefficient_A, bhattacharyya_coefficient_B):
+    """
+        Used to visualise the ground-truth and generated images together with their histograms
+
+    """
 
     hist_gt_merged = hist_gt_L + hist_gt_A + hist_gt_B
     hist_translated_merged = hist_translated_L + hist_translated_A + hist_translated_B
@@ -258,21 +306,22 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
 
     plt.figure(figsize=(15, 10))
 
-    # Plot for original images
+    # Plot for original image
     plt.subplot(2, 3, 1)
     plt.imshow(cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB))
-    plt.title('Original - Ground Truth')
+    plt.title('Ground Truth')
     plt.axis('off')
 
+    # Plot for generated image
     plt.subplot(2, 3, 3)
     plt.imshow(cv2.cvtColor(img_translated, cv2.COLOR_BGR2RGB))
-    plt.title('Original - Translated')
+    plt.title('Generated')
     plt.axis('off')
 
     # Plot for L channel
     plt.subplot(2, 3, 4)
     plt.plot(hist_gt_L, color='r', label='Ground Truth')
-    plt.plot(hist_translated_L, color='b', linestyle='--', label='Translated')
+    plt.plot(hist_translated_L, color='b', linestyle='--', label='Generated')
     plt.xlabel('Pixel Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram - L Channel')
@@ -281,7 +330,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     # Plot for A channel
     plt.subplot(2, 3, 5)
     plt.plot(hist_gt_A, color='r', label='Ground Truth')
-    plt.plot(hist_translated_A, color='b', linestyle='--', label='Translated')
+    plt.plot(hist_translated_A, color='b', linestyle='--', label='Generated')
     plt.xlabel('Pixel Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram - A Channel')
@@ -290,7 +339,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     # Plot for B channel
     plt.subplot(2, 3, 6)
     plt.plot(hist_gt_B, color='r', label='Ground Truth')
-    plt.plot(hist_translated_B, color='b', linestyle='--', label='Translated')
+    plt.plot(hist_translated_B, color='b', linestyle='--', label='Generated')
     plt.xlabel('Pixel Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram - B Channel')
@@ -299,7 +348,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     # Plot for LAB as a whole
     plt.subplot(2, 3, 2)
     plt.plot(hist_gt_merged, color='r', label='Ground Truth')
-    plt.plot(hist_translated_merged, color='b', linestyle='--', label='Translated')
+    plt.plot(hist_translated_merged, color='b', linestyle='--', label='Generated')
     plt.xlabel('Pixel Intensity')
     plt.ylabel('Frequency')
     plt.title('Histogram - LAB comparison')
@@ -320,6 +369,13 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
 
 
 def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
+    """
+        Driver code to iterate through directories with images
+
+        then values are computed, which are used for visualisation and stored as a .npy for further use
+
+    """
+
     orig_he_files = os.listdir(orig_he_folder_path)
     ihc_to_he_files = os.listdir(ihc_to_he_folder_path)
 
@@ -397,7 +453,6 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
 
             # the less, the better (more precise)
-            # TODO - normalizacia LAB celkovo
             # print(f"L bha -  {bhattacharyya_coefficient_L}")
             # print(f"A bha - {bhattacharyya_coefficient_A}")
             # print(f"B bha -  {bhattacharyya_coefficient_B}\n")
@@ -407,11 +462,7 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
             # print(f"A cor - {correl_coefficient_A}")
             # print(f"B cor - {correl_coefficient_B}\n")
 
-            # TODO - kvalitativne spravit aj heatmapy po normalizacii a porovnat, boli tam nejake problemy s
-            # TODO - tym ked sa spravila normalizacia na L, tak uplne odpalilo A a B kanaly do cervenych cisel
-
-
-            # TODO - kvantitativne cez statisticke medtody na batacharyi, coleracia, mutual
+            #
 
             visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
                                      hist_translated_L, hist_translated_A, hist_translated_B,
@@ -431,65 +482,63 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
 
 
 def l_channel_normalization(generated_img, ground_truth_img):
-    # Convert images to Lab color space
+    """
+        Used to normalize the L channel of an image
+
+        returns image with normalized L channel
+
+    """
+
     generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB)
     ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB)
 
-    # Extract Luminance Channel
     generated_L = generated_lab[:, :, 0]
     ground_truth_L = ground_truth_lab[:, :, 0]
 
-    # Normalize L Channels
     generated_mean, generated_std = np.mean(generated_L), np.std(generated_L)
     gt_mean, gt_std = np.mean(ground_truth_L), np.std(ground_truth_L)
 
-    # Apply normalization
     normalized_L = (generated_L - generated_mean) * (gt_std / generated_std) + gt_mean
-
-    # Clip values to valid range [0, 255]
     normalized_L = np.clip(normalized_L, 0, 255)
 
-    # Replace L channel in generated Lab image
     generated_lab[:, :, 0] = normalized_L
-
-    # Convert back to RGB
     normalized_img = cv2.cvtColor(generated_lab, cv2.COLOR_LAB2BGR)
 
     return normalized_img
 
 
 def lab_channel_normalization(generated_img, ground_truth_img):
-    # Convert images to Lab color space
+    """
+        Used to normalize all channels in a LAB image
+
+        returns normalized image
+
+    """
+
     generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB)
     ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB)
 
-    # Extract channels
     generated_L, generated_A, generated_B = cv2.split(generated_lab)
     gt_L, gt_A, gt_B = cv2.split(ground_truth_lab)
 
-    # Normalize channels
     for channel in [generated_L, generated_A, generated_B]:
         channel_mean, channel_std = np.mean(channel), np.std(channel)
         gt_mean, gt_std = np.mean(gt_L), np.std(gt_L)
         normalized_channel = (channel - channel_mean) * (gt_std / channel_std) + gt_mean
-        # Clip values to valid range [0, 255]
         np.clip(normalized_channel, 0, 255, out=normalized_channel)
 
-    # Merge normalized channels into Lab image
     normalized_lab = cv2.merge([generated_L, generated_A, generated_B])
-
-    # Convert back to RGB
     normalized_img = cv2.cvtColor(normalized_lab, cv2.COLOR_LAB2BGR)
 
     return normalized_img
 
 
 if __name__ == "__main__":
-    orig_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
-    ihc_to_he_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
+    orig_he_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_he'
+    ihc_to_he_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\ihc_to_he'
 
-    orig_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
-    he_to_ihc_folder_path = 'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
+    orig_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
+    he_to_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
 
     calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
     calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")

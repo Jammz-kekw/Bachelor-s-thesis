@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import numpy as np
 import wandb
 

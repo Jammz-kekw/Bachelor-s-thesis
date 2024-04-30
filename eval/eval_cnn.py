@@ -1,3 +1,5 @@
+# TODO - toto este pozriet asi prepisat, pripadne zobrat len model z novej cnn a zbehnut na nom testy
+
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader

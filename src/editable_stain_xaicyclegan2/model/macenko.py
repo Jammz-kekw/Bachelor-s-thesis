@@ -1,4 +1,8 @@
 """
+    Prevzatý kód
+"""
+
+"""
 Stain normalization based on the method of:
 
 M. Macenko et al., A method for normalizing histology slides for quantitative analysis, in 2009 IEEE International

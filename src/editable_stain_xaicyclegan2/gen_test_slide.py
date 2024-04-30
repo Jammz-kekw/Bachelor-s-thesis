@@ -1,3 +1,7 @@
+"""
+    Prevzatý kód
+"""
+
 import numpy as np
 
 from model.model import Generator

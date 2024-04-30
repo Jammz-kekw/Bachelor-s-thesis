@@ -1,3 +1,8 @@
+""""
+    Used to download images from wandb
+
+"""
+
 import wandb
 
 api = wandb.Api()
