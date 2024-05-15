@@ -15,6 +15,12 @@ import copy
 
 
 def sort_by_labels_and_normalize(images, labels):
+    """
+        Used to sort images by label. Mean values are extracted from L channel of sorted images
+        for percentage deviation based normalization
+
+    """
+
     level_0 = []
     level_1 = []
     level_2 = []
@@ -65,6 +71,11 @@ def sort_by_labels_and_normalize(images, labels):
 
 
 def get_mean(array):
+    """
+        Used to get the mean value from the L channel of an image
+
+    """
+
     l_channels = []
 
     for image in array:
@@ -77,11 +88,24 @@ def get_mean(array):
 
 
 def extract_label(file):
-    return int(file[11]) if file[6:10] == 'test' else int(file[12])
+    """
+        Extracts label from the image base name
+
+    """
+    try:
+        return int(file[11]) if file[6:10] == 'test' else int(file[12])
+    except ValueError:
+        return None
 
 
-# Step 1: Load the Images and Extract Labels
 def load_data(data_dir, max_images=None):
+    """
+        Loads data from the directory, resizes images to 256x256 if necessary, extracts the label of an image
+
+        returns arrays of images and labels
+
+    """
+
     images = []
     labels = []
     num_loaded = 0
@@ -108,7 +132,12 @@ def preprocess_images(images):
 
 
 class CustomDataset(Dataset):
-    def __init__(self, images, labels, flip_h=False, flip_v=False, transform=None):
+    """
+        Custom dataset class for handling images and labels
+
+    """
+
+    def __init__(self, images, labels=None, flip_h=False, flip_v=False, transform=None):
         self.images = images
         self.labels = labels
         self.transform = transform
@@ -120,7 +149,11 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
         image = self.images[idx]
-        label = self.labels[idx]
+
+        if self.labels is not None:
+            label = self.labels[idx]
+        else:
+            label = -1
 
         if self.transform:
             image = self.transform(image)
@@ -137,6 +170,11 @@ class CustomDataset(Dataset):
 
 
 class CNN(nn.Module):
+    """
+        Convolutional NN with 4 convolutional layers, 2 fully-connected layers, 1 dropout layer
+        and l2 lambda regularization, ReLU used as an activation function
+
+    """
     def __init__(self, num_classes=4, dropout_prob=0.5, l2_lambda=0.001):
         super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=3, out_channels=16, kernel_size=3, stride=1, padding=1)
@@ -175,32 +213,26 @@ if __name__ == "__main__":
 
     x_train, x_test, y_train, y_test = train_test_split(images, labels, test_size=0.2, random_state=42)
 
-    # Step 5: Data Augmentation (Optional)
-    # Define data augmentation transforms if needed
     transform = transforms.Compose([
-        transforms.ToTensor(),  # Convert image to PyTorch tensor
+        transforms.ToTensor(),
     ])
 
-    # Step 6: Create Data Loaders
     train_dataset = CustomDataset(x_train, y_train, transform=transform, flip_h=True, flip_v=True)
     test_dataset = CustomDataset(x_test, y_test, transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
-    # Define model, criterion, optimizer
     model = CNN(num_classes=4)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=model.l2_lambda)
 
-    # Define scheduler and early stopping criteria
     scheduler = ReduceLROnPlateau(optimizer, mode='min', patience=5, factor=0.1)
     best_model_weights = copy.deepcopy(model.state_dict())
     best_loss = float('inf')
     early_stopping_patience = 10
     early_stopping_counter = 0
 
-    # Training loop
-    num_epochs = 50  # Increase number of epochs
+    num_epochs = 50
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
@@ -216,7 +248,6 @@ if __name__ == "__main__":
         epoch_loss = running_loss / len(train_loader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {epoch_loss}")
 
-        # Validation
         model.eval()
         val_loss = 0.0
         correct = 0
@@ -233,10 +264,8 @@ if __name__ == "__main__":
         accuracy = correct / total
         print(f"Epoch [{epoch + 1}/{num_epochs}], Validation Loss: {val_loss}, Accuracy: {accuracy}")
 
-        # Update learning rate scheduler
         scheduler.step(val_loss)
 
-        # Update best model
         if val_loss < best_loss:
             best_loss = val_loss
             best_model_weights = copy.deepcopy(model.state_dict())
@@ -244,14 +273,8 @@ if __name__ == "__main__":
         else:
             early_stopping_counter += 1
             if early_stopping_counter >= early_stopping_patience:
-                print("Early stopping triggered.")
+                print("Early stopping triggered")
                 break
 
-    # Load best model weights
     model.load_state_dict(best_model_weights)
-
-    # Save model
-    torch.save(model.state_dict(), 'cnn_models/best_model.pth')
-
-
-
+    torch.save(model.state_dict(), 'cnn_models/model_test.pth')

@@ -2,6 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from new_cnn_test import get_mean
 
 
 def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 256]):
@@ -113,7 +114,7 @@ def compute_values(original_image, generated_image):
     return [l_values_bha, a_values_bha, b_values_bha], [l_values_cor, a_values_cor, b_values_cor]
 
 
-def visualise(original, generated, normalized, generated_lab, normalized_lab, tag, metric):
+def visualise(original, generated, normalized, generated_lab, normalized_lab, tag, metric, norm):
     """
         Puts computed data in a pyplot in a 4x3 grid for visual comparison with values
 
@@ -128,12 +129,12 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     plt.close('all')
 
     if metric == 'bha':
-        title = "Bhattacharyya"
+        title = "Bhattacharyya vzdialenosť"
         color = 'RdYlGn_r'
         min_range = 0
         max_range = 1
     else:
-        title = "Correlation"
+        title = "Korelácia"
         color = 'coolwarm'
         min_range = -1
         max_range = 1
@@ -157,7 +158,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Original image
     plt.subplot(4, 3, 1)
     plt.imshow(original)
-    plt.title(f"Pôvodný {stain}")
+    plt.title(f"Originál {stain}")
     plt.axis('off')
 
     # Generated image
@@ -175,7 +176,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Generated L
     plt.subplot(4, 3, 5)
     plt.imshow(grid_gen_l, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Generovaný L")
+    plt.title("Generovaný - L kanál")
     plt.axis('off')
 
     for i in range(grid_gen_l.shape[0]):
@@ -186,7 +187,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Generated A
     plt.subplot(4, 3, 8)
     plt.imshow(grid_gen_a, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Generovaný A")
+    plt.title("Generovaný - A kanál")
     plt.axis('off')
 
     for i in range(grid_gen_a.shape[0]):
@@ -197,7 +198,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Generated B
     plt.subplot(4, 3, 11)
     plt.imshow(grid_gen_b, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Generovaný B")
+    plt.title("Generovaný - B kanál")
     plt.axis('off')
 
     for i in range(grid_gen_b.shape[0]):
@@ -208,7 +209,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Normalized L
     plt.subplot(4, 3, 6)
     plt.imshow(grid_norm_l, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Normalizovaný L")
+    plt.title("Normalizovaný - L kanál")
     plt.axis('off')
 
     for i in range(grid_norm_l.shape[0]):
@@ -219,7 +220,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Normalized A
     plt.subplot(4, 3, 9)
     plt.imshow(grid_norm_a, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Normalizovaný A")
+    plt.title("Normalizovaný - A kanál")
     plt.axis('off')
 
     for i in range(grid_norm_a.shape[0]):
@@ -230,7 +231,7 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     # Normalized B
     plt.subplot(4, 3, 12)
     plt.imshow(grid_norm_b, cmap=color, interpolation='nearest', vmin=min_range, vmax=max_range)
-    plt.title("Normalizovaný B")
+    plt.title("Normalizovaný - B kanál")
     plt.axis('off')
 
     for i in range(grid_norm_b.shape[0]):
@@ -243,17 +244,17 @@ def visualise(original, generated, normalized, generated_lab, normalized_lab, ta
     plt.colorbar(ax=plt.gca(), orientation='horizontal', cax=cb_ax)
 
     # Means on the left side
-    plt.figtext(0.23, 0.6, f"Priemer pre generovaný L - {np.mean(gen_l):.4f}", ha='center')
-    plt.figtext(0.23, 0.4, f"Priemer pre generovaný A - {np.mean(gen_a):.4f}", ha='center')
-    plt.figtext(0.23, 0.2, f"Priemer pre generovaný B - {np.mean(gen_b):.4f}", ha='center')
+    plt.figtext(0.23, 0.6, f"Priemer pre generovaný L kanál - {np.mean(gen_l):.4f}", ha='center')
+    plt.figtext(0.23, 0.4, f"Priemer pre generovaný A kanál - {np.mean(gen_a):.4f}", ha='center')
+    plt.figtext(0.23, 0.2, f"Priemer pre generovaný B kanál - {np.mean(gen_b):.4f}", ha='center')
 
-    plt.figtext(0.23, 0.58, f"Priemer pre normalizovaný L - {np.mean(norm_l):.4f}", ha='center')
-    plt.figtext(0.23, 0.38, f"Priemer pre normalizovaný A - {np.mean(norm_a):.4f}", ha='center')
-    plt.figtext(0.23, 0.18, f"Priemer pre normalizovaný B - {np.mean(norm_b):.4f}", ha='center')
+    plt.figtext(0.23, 0.58, f"Priemer pre normalizovaný L kanál - {np.mean(norm_l):.4f}", ha='center')
+    plt.figtext(0.23, 0.38, f"Priemer pre normalizovaný A kanál - {np.mean(norm_a):.4f}", ha='center')
+    plt.figtext(0.23, 0.18, f"Priemer pre normalizovaný B kanál - {np.mean(norm_b):.4f}", ha='center')
 
     # Image
     plt.suptitle(title + " | " + tag)
-    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x_new\\{name}_{title}_inter.png')
+    plt.savefig(f'D:\\FIIT\\Bachelor-s-thesis\\Dataset\\heatmaps\\run_4x_new\\{name}_{title}_{norm}.png')
     # plt.show()
     plt.close()
 
@@ -283,18 +284,18 @@ def l_channel_normalization(original_lab, generated_lab):
 
     """
 
-    original_l = original_lab[:, :, 0]
-    generated_l = generated_lab[:, :, 0]
+    original_l, _, _ = cv2.split(original_lab)
+    generated_l, a, b = cv2.split(generated_lab)
 
-    original_mean, original_std = np.mean(original_l), np.std(original_l)
-    generated_mean, generated_std = np.mean(generated_l), np.std(generated_l)
+    original_mean = np.mean(original_l)
+    generated_mean = np.mean(generated_l)
 
-    normalized_l = (generated_l - generated_mean) * (original_std / generated_std) + original_mean
-    normalized_l = np.clip(normalized_l, 0, 100)
+    ratio = np.round((original_mean - generated_mean) / original_mean * 100)
+    normalized_l = np.clip(generated_l + ratio.astype(np.uint8), 0, 255)
 
-    generated_lab[:, :, 0] = normalized_l
+    lab_merged = cv2.merge([normalized_l, a, b])
 
-    normalized_rgb = cv2.cvtColor(generated_lab, cv2.COLOR_LAB2BGR)
+    normalized_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2BGR)
 
     return normalized_rgb
 
@@ -363,6 +364,7 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
               the computing of new metrics
 
     """
+    means = []
 
     gen_l_mean_bha = []
     gen_a_mean_bha = []
@@ -413,31 +415,20 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
 
         normalized_rgb = l_channel_normalization(original_lab, generated_lab)
         normalized_lab = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2LAB)
+        normalized_rgb_save = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
+
+        # if stain_type == 'HE':
+        #     cv2.imwrite(f"D:\FIIT\Bachelor-s-thesis\Dataset\\normalized\HE\HE_{image_no}_normalized.png", normalized_rgb_save)
+        # else:
+        #     cv2.imwrite(f"D:\FIIT\Bachelor-s-thesis\Dataset\\normalized\IHC\IHC_{image_no}_normalized.png", normalized_rgb_save)
 
         interpolation_rgb = color_correction(generated_rgb, original_rgb)
         interpolation_lab = cv2.cvtColor(interpolation_rgb, cv2.COLOR_RGB2LAB)
 
-        # plt.subplot(1, 3, 1)
-        # plt.imshow(original_rgb)
-        # plt.axis('off')
-        # plt.title('Original')
-        #
-        # plt.subplot(1, 3, 2)
-        # plt.imshow(generated_rgb)
-        # plt.axis('off')
-        # plt.title("generated")
-        #
-        # plt.subplot(1, 3, 3)
-        # plt.imshow(interpolation_rgb)
-        # plt.axis('off')
-        # plt.title('interpolation')
-        #
-        # plt.show()
-
         # Get quantitative analysis
-        # generated_bha, generated_cor = compute_values(original_lab, generated_lab)
-        # normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
-        # interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
+        generated_bha, generated_cor = compute_values(original_lab, generated_lab)
+        normalized_bha, normalized_cor = compute_values(original_lab, normalized_lab)
+        interpolation_bha, interpolation_cor = compute_values(original_lab, interpolation_lab)
 
         gen_mt_info = get_mutual_information(original_lab, generated_lab)
         norm_mt_info = get_mutual_information(original_lab, normalized_lab)
@@ -448,14 +439,17 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         generated_rgb = cv2.cvtColor(generated_rgb, cv2.COLOR_BGR2RGB)
         normalized_rgb = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
 
-        # visualise(original_rgb, generated_rgb, normalized_rgb,
-        #           generated_bha, normalized_bha, tag, 'bha')
-        #
-        # visualise(original_rgb, generated_rgb, normalized_rgb,
-        #           generated_cor, normalized_cor, tag, 'cor')
+        visualise(original_rgb, generated_rgb, normalized_rgb,
+                  generated_bha, normalized_bha, tag, 'bha', 'norm')
 
-        # visualise(original_rgb, generated_rgb, interpolation_rgb,
-        #           generated_bha, interpolation_bha, tag, 'cor')
+        visualise(original_rgb, generated_rgb, normalized_rgb,
+                  generated_cor, normalized_cor, tag, 'cor', 'norm')
+
+        visualise(original_rgb, generated_rgb, interpolation_rgb,
+                  generated_bha, interpolation_bha, tag, 'bha', 'inter')
+
+        visualise(original_rgb, generated_rgb, interpolation_rgb,
+                  generated_cor, interpolation_cor, tag, 'cor', 'inter')
 
         # Add means
         # gen_l_mean_bha.append(np.mean(generated_bha[0]))
@@ -481,40 +475,39 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         # inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
         # inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
         # inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
-
-        gen_mutual_info.append(gen_mt_info)
-        norm_mutual_info.append(norm_mt_info)
-        inter_mutual_info.append(inter_mt_info)
+        #
+        # gen_mutual_info.append(gen_mt_info)
+        # norm_mutual_info.append(norm_mt_info)
+        # inter_mutual_info.append(inter_mt_info)
 
     # Save
-    # np.save(f'{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
-    # np.save(f'{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
-    # np.save(f'{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
     #
-    # np.save(f'{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
-    # np.save(f'{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
-    # np.save(f'{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
     #
+    # np.save(f'4x_mean_new//{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
     #
-    # np.save(f'{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
-    # np.save(f'{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
-    # np.save(f'{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
     #
-    # np.save(f'{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
-    # np.save(f'{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
-    # np.save(f'{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_L_inter_bha.npy', inter_l_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
     #
-    # np.save(f'{stain_type}_L_inter_bha.npy', inter_l_mean_bha)
-    # np.save(f'{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
-    # np.save(f'{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
+    # np.save(f'4x_mean_new//{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
+    # np.save(f'4x_mean_new//{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
     #
-    # np.save(f'{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
-    # np.save(f'{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
-    # np.save(f'{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
-
-    # np.save(f'{stain_type}_gen_mt_info.npy', gen_mutual_info)
-    np.save(f'{stain_type}_norm_mt_info.npy', norm_mutual_info)
-    # np.save(f'{stain_type}_inter_mt_info.npy', inter_mutual_info)
+    # np.save(f'4x_mean_new//{stain_type}_gen_mt_info.npy', gen_mutual_info)
+    # np.save(f'4x_mean_new//{stain_type}_norm_mt_info.npy', norm_mutual_info)
+    # np.save(f'4x_mean_new//{stain_type}_inter_mt_info.npy', inter_mutual_info)
     print('saved')
 
 
@@ -531,7 +524,7 @@ if __name__ == '__main__':
     orig_ihc_files = os.listdir(orig_ihc_folder_path)
     he_to_ihc_files = os.listdir(he_to_ihc_folder_path)
 
-    run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
+    # run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
 
     run_pairs(orig_ihc_files, he_to_ihc_files, orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
 

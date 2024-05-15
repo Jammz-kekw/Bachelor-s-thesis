@@ -56,7 +56,7 @@ if __name__ == '__main__':
     gen_he_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1082_ihc_to_he.png"
 
     orig_ihc_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\858_orig_ihc.png"
-    gen_ihc_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\885_he_to_ihc.png"
+    gen_ihc_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\855_he_to_ihc.png"
 
     orig_ihc_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_ihc\\1792_orig_ihc.png"
     gen_ihc_2 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\he_to_ihc\\1792_he_to_ihc.png"

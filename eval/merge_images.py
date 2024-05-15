@@ -53,6 +53,51 @@ def merge_images_name(image1_path, image2_path, name, text1, text2):
     cv2.imwrite(f"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\form\\{name}.png", bottom_images)
 
 
+def merge_three_images_name(image1_path, image2_path, image3_path, name, text1, text2, text3):
+    """
+    Merges three images together with a separator in between
+    also puts a label to each image for better reading
+
+    was created for the Google form
+    """
+
+    image1 = cv2.imread(image1_path)
+    image2 = cv2.imread(image2_path)
+    image3 = cv2.imread(image3_path)
+
+    white_square_size = (256, 40)
+    white_square = np.ones((white_square_size[0], white_square_size[1], 3), dtype=np.uint8) * 255
+
+    total_width = image1.shape[1] + white_square.shape[1] + image2.shape[1] + white_square.shape[1] + image3.shape[1]
+    total_height = max(image1.shape[0], image2.shape[0], image3.shape[0])
+
+    white_strip = np.ones((40, total_width, 3), dtype=np.uint8) * 255
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    font_scale = 0.75
+    font_thickness = 2
+    text_color = (0, 0, 0)
+
+    text_size1 = cv2.getTextSize(text1, font, font_scale, font_thickness)[0]
+    text_size2 = cv2.getTextSize(text2, font, font_scale, font_thickness)[0]
+    text_size3 = cv2.getTextSize(text3, font, font_scale, font_thickness)[0]
+
+    text_x1 = (image1.shape[1] - text_size1[0]) // 2  # Center of the first third
+    text_x2 = image1.shape[1] + white_square.shape[1] + (image2.shape[1] - text_size2[0]) // 2
+    text_x3 = image1.shape[1] + white_square.shape[1] + image2.shape[1] + white_square.shape[1] + (image3.shape[1] - text_size3[0]) // 2
+
+    text_y = (white_strip.shape[0] + text_size1[1]) // 2  # Center vertically
+
+    cv2.putText(white_strip, text1, (text_x1, text_y), cv2.FONT_HERSHEY_DUPLEX, font_scale, text_color, font_thickness)
+    cv2.putText(white_strip, text2, (text_x2, text_y), cv2.FONT_HERSHEY_DUPLEX, font_scale, text_color, font_thickness)
+    cv2.putText(white_strip, text3, (text_x3, text_y), cv2.FONT_HERSHEY_DUPLEX, font_scale, text_color, font_thickness)
+
+    top_images = np.hstack((image1, white_square, image2, white_square, image3))
+    bottom_images = np.vstack((top_images, white_strip))
+
+    cv2.imwrite(f"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\form\\{name}.png", bottom_images)
+
+
 if __name__ == '__main__':
     orig_he_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1799_orig_he.png"
     gen_he_1 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1799_ihc_to_he.png"
@@ -149,3 +194,27 @@ if __name__ == '__main__':
     merge_images_name(orig_he_8, orig_ihc_8, "sample_8", "H&E", "IHC")
     merge_images_name(orig_he_9, orig_ihc_9, "sample_9", "H&E", "IHC")
     merge_images_name(orig_he_10, orig_ihc_10, "sample_10", "H&E", "IHC")
+
+    merge_images_name(orig_he_1, orig_ihc_1, "thesis_imshow_1", "H&E", "IHC")
+
+    orig_he_11 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\orig_he\\1320_orig_he.png"
+    gen_he_11 = r"D:\\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\ihc_to_he\\1320_ihc_to_he.png"
+    norm_he_11 = r"D:\FIIT\Bachelor-s-thesis\Dataset\normalized\inter_he_1.png"
+
+    orig_ihc_11 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\orig_ihc\1792_orig_ihc.png"
+    gen_ihc_11 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\he_to_ihc\1792_he_to_ihc.png"
+    norm_ihc_11 = r"D:\FIIT\Bachelor-s-thesis\Dataset\normalized\inter_ihc_2.png"
+
+    orig_he_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\orig_he\1770_orig_he.png"
+    gen_he_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\ihc_to_he\1770_ihc_to_he.png"
+    nor_he_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\normalized\HE\HE_1770_normalized.png"
+
+    orig_ihc_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\orig_ihc\1543_orig_ihc.png"
+    gen_ihc_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\results_cut\run_4x\he_to_ihc\1543_he_to_ihc.png"
+    nor_ihc_12 = r"D:\FIIT\Bachelor-s-thesis\Dataset\normalized\IHC\IHC_1543_normalized.png"
+
+    merge_three_images_name(orig_he_11, gen_he_11, norm_he_11, "inter_comparison_1", "Original H&E", "Generovany H&E", "Normalizovany H&E")
+    merge_three_images_name(orig_ihc_11, gen_ihc_11, norm_ihc_11, "inter_comparison_2", "Original IHC", "Generovany IHC", "Normalizovany IHC")
+
+    merge_three_images_name(orig_he_12, gen_he_12, nor_he_12, "norm_comparison_1", "Original H&E", "Generovany H&E", "Normalizovany H&E")
+    merge_three_images_name(orig_ihc_12, gen_ihc_12, nor_ihc_12, "norm_comparison_2", "Original IHC", "Generovany IHC", "Normalizovany IHC")

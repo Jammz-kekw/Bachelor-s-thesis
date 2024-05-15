@@ -9,6 +9,13 @@ def get_mean(l, a, b):
 
 
 def descriptive_analysis(data, tag, metric):
+    """
+        Used to get the descriptive analysis of data computed and stored in .npy arrays
+
+        also shows a histogram with pyplot for visual illustration of data distribution
+
+    """
+
     if metric == 'bha':
         title = "Bhattacharyya distance"
     elif metric == 'mt':
@@ -23,28 +30,33 @@ def descriptive_analysis(data, tag, metric):
     median_value = np.median(data)
     q1, q2, q3 = np.percentile(data, [25, 50, 75])
 
-    print("Mean:", mean_value)
-    print("Standard Deviation:", std_dev)
+    print("Priemer:", mean_value)
+    print("Štandartná odchýlka:", std_dev)
     print("Minimum:", min_value)
     print("Maximum:", max_value)
-    print("Median:", median_value)
-    print("Quartiles:")
-    print("  Q1:\t\t", q1)
-    print("  Q2 (Median):", q2)
-    print("  Q3:\t\t", q3, "\n")
+    print("Medián:", median_value)
+    print("Kvartily:")
+    print("  Q1:", q1)
+    print("  Q2:", q2)
+    print("  Q3:", q3, "\n")
 
     plt.hist(data, bins=30, color='skyblue', edgecolor='black')
-    plt.title(f'Histogram of {title}  {tag}')
+    plt.title(f'Histogram {title}  {tag}')
     plt.xlabel(f'{title}')
-    plt.ylabel('Frequency')
+    plt.ylabel('Frekvencia')
     plt.grid(True)
     plt.show()
 
 
 def comparison_analysis(before, after, metric):
+    """
+        Used to compare two sets of data, mostly before and after normalization to see whether data improved
+
+    """
+
     if metric == 'bha':
         title = "Bhattacharyya distance"
-    if metric == 'mt':
+    elif metric == 'mt':
         title = "Mutual information"
     else:
         title = "Correlation"
@@ -55,29 +67,34 @@ def comparison_analysis(before, after, metric):
     std_before = np.std(before)
     std_after = np.std(after)
 
-    plt.boxplot([before, after], labels=['Before Normalization', 'After Normalization'])
-    plt.title(f'Comparison of {title} Before and After Normalization')
+    plt.boxplot([before, after], labels=['Pred normalizáciou', 'Po normalizácii'])
+    plt.title(f'Porovnanie {title} pred a po normalizácii')
     plt.ylabel(f'{title}')
     plt.text(1.1, mean_before, f'{mean_before:.5f}', color='black', va='center')
     plt.text(2.1, mean_after, f'{mean_after:.5f}', color='black', va='center')
     plt.show()
 
-    plt.hist(before, bins=30, alpha=0.5, label='Before Normalization')
-    plt.hist(after, bins=30, alpha=0.5, label='After Normalization')
-    plt.title(f'Histogram of {title}')
+    plt.hist(before, bins=30, alpha=0.5, label='Pred normalizáciou')
+    plt.hist(after, bins=30, alpha=0.5, label='Po normalizácii')
+    plt.title(f'Histogram - {title}')
     plt.xlabel(f'{title}')
-    plt.ylabel('Frequency')
+    plt.ylabel('Frekvencia')
     plt.legend()
     plt.show()
 
-    print(f"Descriptive Statistics {title}:")
-    print("Before Normalization - Mean:", mean_before, " Std Dev:", std_before)
-    print("After Normalization - Mean:", mean_after, " Std Dev:", std_after, "\n")
+    print(f"Deskriptívna štatistika {title}:")
+    print("Pred normalizáciou - Priemer:", mean_before, " Štandartná odchýlka:", std_before)
+    print("After Normalization - Mean:", mean_after, " Štandarstná odchýlka:", std_after, "\n")
 
 
 def statistic_tests(before, after, metric):
-    # H0 -  Bhattacharyya / Correlation after normalization is NOT significantly different from before normalization
-    # H1 -  Bhattacharyya / Correlation after normalization is significantly different from before normalization
+    """
+        Runs t-test to prove if there was change in data
+
+        H0 -  Bhattacharyya / Correlation after normalization is NOT significantly different from before normalization
+        H1 -  Bhattacharyya / Correlation after normalization is significantly different from before normalization
+
+    """
 
     if metric == ('bha' or 'mt'):
         alt = 'greater'
@@ -86,15 +103,15 @@ def statistic_tests(before, after, metric):
 
     t_statistic, p_value_t = stats.ttest_rel(before, after, alternative=alt)
 
-    print("Paired t-test:")
-    print("T-statistic:", t_statistic)
-    print("P-value:", p_value_t)
+    print("Párovaný t-test:")
+    print("T-štatistika:", t_statistic)
+    print("P-hodnota:", p_value_t)
 
     alpha = 0.05
     if p_value_t < alpha:
-        print("Reject the null hypothesis. Results after normalization have improved.")
+        print("Odmietnutie nulovej hypotézy. Výsledky po normalizácii sa zlepšili")
     else:
-        print("Fail to reject the null hypothesis. No significant improvement after normalization.\n\n")
+        print("Neodmietame nulovú hypotézu. Výsledky po normalizácii sa nezlepšili\n\n")
 
 
 def run_analysis(before, after, before_tag, after_tag, metric):
@@ -209,4 +226,6 @@ if __name__ == '__main__':
     # run_analysis(ihc_gen_mt_info, ihc_inter_mt_info, 'IHC gen mt info', 'IHC inter mt info', 'mt')
 
     # run_analysis(he_gen_mt_info, he_norm_mt_info, 'HE gen mt info', 'HE norm mt info', 'mt')
-    run_analysis(ihc_gen_mt_info, ihc_norm_mt_info, 'HE gen mt info', 'IHC norm mt info', 'mt')
+    # run_analysis(ihc_gen_mt_info, ihc_norm_mt_info, 'HE gen mt info', 'IHC norm mt info', 'mt')
+
+    run_analysis(he_lab_bha, he_lab_norm_bha, 'HE generované Bhattacharyya', 'HE normalizované Bhattacharyya', 'bha')

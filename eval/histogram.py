@@ -51,7 +51,7 @@ def calculate_mean_mutual_information(image1, image2, patch_size):
     patches1 = split_image(image1, patch_size)
     patches2 = split_image(image2, patch_size)
 
-    visualise_split(patches1)
+    # visualise_split(patches1)
     # visualise_split(patches2)
 
     mutual_information_values = []
@@ -169,7 +169,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 4)
     plt.imshow(grid_values_L, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya L heatmap')
+    plt.title('Bhattacharyya - L kanál')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -181,7 +181,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 5)
     plt.imshow(grid_values_A, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya A color map')
+    plt.title('Bhattacharyya - A kanál')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -193,7 +193,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 6)
     plt.imshow(grid_values_B, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya B color map')
+    plt.title('Bhattacharyya - B kanál')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -206,7 +206,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 7)
     plt.imshow(grid_values_L_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya L normalized color map')
+    plt.title('Bhattacharyya - L kanál normalizovaný')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -218,7 +218,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 8)
     plt.imshow(grid_values_A_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya A normalized color map')
+    plt.title('Bhattacharyya - A kanál')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -230,7 +230,7 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
     plt.subplot(3, 3, 9)
     plt.imshow(grid_values_B_norm, cmap=cmap, interpolation='nearest', vmin=0,
                vmax=1)
-    plt.title('Bhattacharyya B normalized heatmap')
+    plt.title('Bhattacharyya - B kanál')
     plt.xticks(np.arange(4))
     plt.yticks(np.arange(4))
 
@@ -241,17 +241,17 @@ def calculate_bhattacharyya_16(image1, image2, patch_size, image1_rgb, image2_rg
 
     plt.subplot(3, 3, 1)
     plt.imshow(cv2.cvtColor(image1_rgb, cv2.COLOR_BGR2RGB))
-    plt.title('Ground Truth')
+    plt.title('Originál')
     plt.axis('off')
 
     plt.subplot(3, 3, 3)
     plt.imshow(cv2.cvtColor(image2_rgb, cv2.COLOR_BGR2RGB))
-    plt.title('Generated')
+    plt.title('Generovaný')
     plt.axis('off')
 
     plt.subplot(3, 3, 2)
     plt.imshow(cv2.cvtColor(image2_normalized_lab, cv2.COLOR_LAB2BGR))
-    plt.title('Normalized')
+    plt.title('Normalizovaný')
     plt.axis('off')
 
     plt.figtext(0.23, 0.06, f"Mean Bhattacharyya L - {mean_L}", ha='center')
@@ -297,6 +297,7 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
         Used to visualise the ground-truth and generated images together with their histograms
 
     """
+    plt.close()
 
     hist_gt_merged = hist_gt_L + hist_gt_A + hist_gt_B
     hist_translated_merged = hist_translated_L + hist_translated_A + hist_translated_B
@@ -309,57 +310,57 @@ def visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B, hist_translated_L,
     # Plot for original image
     plt.subplot(2, 3, 1)
     plt.imshow(cv2.cvtColor(img_gt, cv2.COLOR_BGR2RGB))
-    plt.title('Ground Truth')
+    plt.title('Originál')
     plt.axis('off')
 
     # Plot for generated image
     plt.subplot(2, 3, 3)
     plt.imshow(cv2.cvtColor(img_translated, cv2.COLOR_BGR2RGB))
-    plt.title('Generated')
+    plt.title('Generovaný')
     plt.axis('off')
 
     # Plot for L channel
     plt.subplot(2, 3, 4)
-    plt.plot(hist_gt_L, color='r', label='Ground Truth')
-    plt.plot(hist_translated_L, color='b', linestyle='--', label='Generated')
-    plt.xlabel('Pixel Intensity')
-    plt.ylabel('Frequency')
-    plt.title('Histogram - L Channel')
+    plt.plot(hist_gt_L, color='r', label='Originál')
+    plt.plot(hist_translated_L, color='b', linestyle='--', label='Generovaný')
+    plt.xlabel('Intenzita pixelov')
+    plt.ylabel('Frekvencia')
+    plt.title('Histogram - L kanál')
     plt.legend()
 
     # Plot for A channel
     plt.subplot(2, 3, 5)
-    plt.plot(hist_gt_A, color='r', label='Ground Truth')
-    plt.plot(hist_translated_A, color='b', linestyle='--', label='Generated')
-    plt.xlabel('Pixel Intensity')
-    plt.ylabel('Frequency')
-    plt.title('Histogram - A Channel')
+    plt.plot(hist_gt_A, color='r', label='Originál')
+    plt.plot(hist_translated_A, color='b', linestyle='--', label='Generovaný')
+    plt.xlabel('Intenzita pixelov')
+    plt.ylabel('Frekvencia')
+    plt.title('Histogram - A kanál')
     plt.legend()
 
     # Plot for B channel
     plt.subplot(2, 3, 6)
-    plt.plot(hist_gt_B, color='r', label='Ground Truth')
-    plt.plot(hist_translated_B, color='b', linestyle='--', label='Generated')
-    plt.xlabel('Pixel Intensity')
-    plt.ylabel('Frequency')
-    plt.title('Histogram - B Channel')
+    plt.plot(hist_gt_B, color='r', label='Originál')
+    plt.plot(hist_translated_B, color='b', linestyle='--', label='Generovaný')
+    plt.xlabel('Intenzita pixelov')
+    plt.ylabel('Frekvencia')
+    plt.title('Histogram - B kanál')
     plt.legend()
 
     # Plot for LAB as a whole
     plt.subplot(2, 3, 2)
-    plt.plot(hist_gt_merged, color='r', label='Ground Truth')
-    plt.plot(hist_translated_merged, color='b', linestyle='--', label='Generated')
-    plt.xlabel('Pixel Intensity')
-    plt.ylabel('Frequency')
-    plt.title('Histogram - LAB comparison')
+    plt.plot(hist_gt_merged, color='r', label='Originál')
+    plt.plot(hist_translated_merged, color='b', linestyle='--', label='Generovaný')
+    plt.xlabel('Intenzita pixelov')
+    plt.ylabel('Frekvencia')
+    plt.title('Histogram - LAB porovnanie')
     plt.legend()
 
     plt.subplots_adjust(bottom=0.14)
 
-    plt.figtext(0.51, 0.03, f"Mean normalized mutual information - {mean_normalized_mi}", ha='center')
-    plt.figtext(0.24, 0.06, f"Bhattacharyya L - {bhattacharyya_coefficient_L}", ha='center')
-    plt.figtext(0.51, 0.06, f"Bhattacharyya A - {bhattacharyya_coefficient_A}", ha='center')
-    plt.figtext(0.79, 0.06, f"Bhattacharyya B - {bhattacharyya_coefficient_B}", ha='center')
+    # plt.figtext(0.51, 0.03, f"Kullback-Leiblerova divergencia - {mean_normalized_mi}", ha='center')
+    # plt.figtext(0.24, 0.06, f"Bhattacharyya L - {bhattacharyya_coefficient_L}", ha='center')
+    # plt.figtext(0.51, 0.06, f"Bhattacharyya A - {bhattacharyya_coefficient_A}", ha='center')
+    # plt.figtext(0.79, 0.06, f"Bhattacharyya B - {bhattacharyya_coefficient_B}", ha='center')
 
     plt.suptitle(title)
     # plt.tight_layout()
@@ -388,123 +389,118 @@ def calculate(orig_he_folder_path, ihc_to_he_folder_path, tag):
     mean_Bs_norm = []
 
     for idx, (orig_he_file, ihc_to_he_file) in enumerate(zip(orig_he_files, ihc_to_he_files)):
-        if orig_he_file.endswith(".png") and ihc_to_he_file.endswith(".png"):
-            gt_image_path = os.path.join(orig_he_folder_path, orig_he_file)
-            translated_image_path = os.path.join(ihc_to_he_folder_path, ihc_to_he_file)
+        gt_image_path = os.path.join(orig_he_folder_path, orig_he_file)
+        translated_image_path = os.path.join(ihc_to_he_folder_path, ihc_to_he_file)
 
-            img_gt = cv2.imread(gt_image_path)
-            img_translated = cv2.imread(translated_image_path)
+        img_gt = cv2.imread(gt_image_path)
+        img_translated = cv2.imread(translated_image_path)
 
-            img_translated_normalized = l_channel_normalization(img_translated, img_gt)  # generated | real !
-            # img_translated_normalized = lab_channel_normalization(img_translated, img_gt)
+        img_translated_normalized = l_channel_normalization(img_translated, img_gt)  # generated | real !
+        # img_translated_normalized = lab_channel_normalization(img_translated, img_gt)
 
-            img_translated_normalized_lab = cv2.cvtColor(img_translated_normalized, cv2.COLOR_BGR2LAB)
-            img_gt_lab = cv2.cvtColor(img_gt, cv2.COLOR_BGR2LAB)
-            img_translated_lab = cv2.cvtColor(img_translated, cv2.COLOR_BGR2LAB)
+        img_translated_normalized_lab = cv2.cvtColor(img_translated_normalized, cv2.COLOR_BGR2LAB)
+        img_gt_lab = cv2.cvtColor(img_gt, cv2.COLOR_BGR2LAB)
+        img_translated_lab = cv2.cvtColor(img_translated, cv2.COLOR_BGR2LAB)
 
-            name = orig_he_file.split('_')
-            name_merged = '_'.join(name[:2])
+        name = orig_he_file.split('_')
+        name_merged = '_'.join(name[:2])
 
-            # visualize_images(gt_image_path, translated_image_path, name_merged)
+        # visualize_images(gt_image_path, translated_image_path, name_merged)
 
-            patch_size = 64
+        patch_size = 64
 
-            # print(f"{tag} - {name_merged}")
-            name_merged = tag + " - " + name_merged
+        # print(f"{tag} - {name_merged}")
+        name_merged = tag + " - " + name_merged
 
-            mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
-            # tuto ten LAB - pozor na datovy typ
-            # print(f"Mean Normalized Mutual Information - {mean_normalized_mi}")
+        mean_normalized_mi = calculate_mean_mutual_information(img_gt_lab, img_translated_lab, patch_size)
+        # mean_L, mean_A, mean_B, mean_L_norm, mean_A_norm, mean_B_norm = calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged, img_translated_normalized_lab)
 
-            mean_L, mean_A, mean_B, mean_L_norm, mean_A_norm, mean_B_norm = calculate_bhattacharyya_16(img_gt_lab, img_translated_lab, 64, img_gt, img_translated, name_merged, img_translated_normalized_lab)
+        # mean_Ls.append(mean_L)
+        # mean_As.append(mean_A)
+        # mean_Bs.append(mean_B)
+        #
+        # mean_Ls_norm.append(mean_L_norm)
+        # mean_As_norm.append(mean_A_norm)
+        # mean_Bs_norm.append(mean_L_norm)
 
-            mean_Ls.append(mean_L)
-            mean_As.append(mean_A)
-            mean_Bs.append(mean_B)
+        hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
+        hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
+        hist_gt_B = cv2.calcHist([img_gt_lab], [2], None, [256], [0, 256])
 
-            mean_Ls_norm.append(mean_L_norm)
-            mean_As_norm.append(mean_A_norm)
-            mean_Bs_norm.append(mean_L_norm)
+        hist_translated_L = cv2.calcHist([img_translated_lab], [0], None, [256], [0, 256])
+        hist_translated_A = cv2.calcHist([img_translated_lab], [1], None, [256], [0, 256])
+        hist_translated_B = cv2.calcHist([img_translated_lab], [2], None, [256], [0, 256])
 
-            hist_gt_L = cv2.calcHist([img_gt_lab], [0], None, [256], [0, 256])
-            hist_gt_A = cv2.calcHist([img_gt_lab], [1], None, [256], [0, 256])
-            hist_gt_B = cv2.calcHist([img_gt_lab], [2], None, [256], [0, 256])
+        # Normalize histograms
+        hist_gt_L /= hist_gt_L.sum()
+        hist_gt_A /= hist_gt_A.sum()
+        hist_gt_B /= hist_gt_B.sum()
 
-            hist_translated_L = cv2.calcHist([img_translated_lab], [0], None, [256], [0, 256])
-            hist_translated_A = cv2.calcHist([img_translated_lab], [1], None, [256], [0, 256])
-            hist_translated_B = cv2.calcHist([img_translated_lab], [2], None, [256], [0, 256])
+        hist_translated_L /= hist_translated_L.sum()
+        hist_translated_A /= hist_translated_A.sum()
+        hist_translated_B /= hist_translated_B.sum()
 
-            # Normalize histograms
-            hist_gt_L /= hist_gt_L.sum()
-            hist_gt_A /= hist_gt_A.sum()
-            hist_gt_B /= hist_gt_B.sum()
+        # Calculate Bhattacharyya coefficients
+        bhattacharyya_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_BHATTACHARYYA)
+        bhattacharyya_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_BHATTACHARYYA)
+        bhattacharyya_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_BHATTACHARYYA)
 
-            hist_translated_L /= hist_translated_L.sum()
-            hist_translated_A /= hist_translated_A.sum()
-            hist_translated_B /= hist_translated_B.sum()
+        correl_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_CORREL)
+        correl_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CORREL)
+        correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
 
-            # Calculate Bhattacharyya coefficients
-            bhattacharyya_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_BHATTACHARYYA)
-            bhattacharyya_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_BHATTACHARYYA)
-            bhattacharyya_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_BHATTACHARYYA)
+        # the less, the better (more precise)
+        # print(f"L bha -  {bhattacharyya_coefficient_L}")
+        # print(f"A bha - {bhattacharyya_coefficient_A}")
+        # print(f"B bha -  {bhattacharyya_coefficient_B}\n")
+        #
+        # # the more, the better (more precise)
+        # print(f"L cor - {correl_coefficient_L}")
+        # print(f"A cor - {correl_coefficient_A}")
+        # print(f"B cor - {correl_coefficient_B}\n")
 
-            correl_coefficient_L = cv2.compareHist(hist_gt_L, hist_translated_L, cv2.HISTCMP_CORREL)
-            correl_coefficient_A = cv2.compareHist(hist_gt_A, hist_translated_A, cv2.HISTCMP_CORREL)
-            correl_coefficient_B = cv2.compareHist(hist_gt_B, hist_translated_B, cv2.HISTCMP_CORREL)
+        #
 
-            # the less, the better (more precise)
-            # print(f"L bha -  {bhattacharyya_coefficient_L}")
-            # print(f"A bha - {bhattacharyya_coefficient_A}")
-            # print(f"B bha -  {bhattacharyya_coefficient_B}\n")
-            #
-            # # the more, the better (more precise)
-            # print(f"L cor - {correl_coefficient_L}")
-            # print(f"A cor - {correl_coefficient_A}")
-            # print(f"B cor - {correl_coefficient_B}\n")
+        visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
+                                 hist_translated_L, hist_translated_A, hist_translated_B,
+                                 img_gt, img_translated, name_merged,
+                                 mean_normalized_mi,
+                                 bhattacharyya_coefficient_L,
+                                 bhattacharyya_coefficient_A,
+                                 bhattacharyya_coefficient_B)
 
-            #
-
-            visualize_lab_histograms(hist_gt_L, hist_gt_A, hist_gt_B,
-                                     hist_translated_L, hist_translated_A, hist_translated_B,
-                                     img_gt, img_translated, name_merged,
-                                     mean_normalized_mi,
-                                     bhattacharyya_coefficient_L,
-                                     bhattacharyya_coefficient_A,
-                                     bhattacharyya_coefficient_B)
-
-    np.save(f'{tag}_L.npy', mean_Ls)
-    np.save(f'{tag}_A.npy', mean_As)
-    np.save(f'{tag}_B.npy', mean_As)
-
-    np.save(f'{tag}_L_norm.npy', mean_Ls_norm)
-    np.save(f'{tag}_A_norm.npy', mean_As_norm)
-    np.save(f'{tag}_B_norm.npy', mean_Bs_norm)
+    # np.save(f'{tag}_L.npy', mean_Ls)
+    # np.save(f'{tag}_A.npy', mean_As)
+    # np.save(f'{tag}_B.npy', mean_As)
+    # 
+    # np.save(f'{tag}_L_norm.npy', mean_Ls_norm)
+    # np.save(f'{tag}_A_norm.npy', mean_As_norm)
+    # np.save(f'{tag}_B_norm.npy', mean_Bs_norm)
 
 
-def l_channel_normalization(generated_img, ground_truth_img):
+def l_channel_normalization(original, generated):
     """
-        Used to normalize the L channel of an image
-
-        returns image with normalized L channel
+        Used to normalize the L channel in generated image towards the original image
 
     """
 
-    generated_lab = cv2.cvtColor(generated_img, cv2.COLOR_BGR2LAB)
-    ground_truth_lab = cv2.cvtColor(ground_truth_img, cv2.COLOR_BGR2LAB)
+    original_lab = cv2.cvtColor(original, cv2.COLOR_BGR2LAB)
+    generated_lab = cv2.cvtColor(generated, cv2.COLOR_BGR2LAB)
 
-    generated_L = generated_lab[:, :, 0]
-    ground_truth_L = ground_truth_lab[:, :, 0]
+    original_l, _, _ = cv2.split(original_lab)
+    generated_l, a, b = cv2.split(generated_lab)
 
-    generated_mean, generated_std = np.mean(generated_L), np.std(generated_L)
-    gt_mean, gt_std = np.mean(ground_truth_L), np.std(ground_truth_L)
+    original_mean = np.mean(original_l)
+    generated_mean = np.mean(generated_l)
 
-    normalized_L = (generated_L - generated_mean) * (gt_std / generated_std) + gt_mean
-    normalized_L = np.clip(normalized_L, 0, 255)
+    ratio = np.round((original_mean - generated_mean) / original_mean * 100)
+    normalized_l = np.clip(generated_l + ratio.astype(np.uint8), 0, 255)
 
-    generated_lab[:, :, 0] = normalized_L
-    normalized_img = cv2.cvtColor(generated_lab, cv2.COLOR_LAB2BGR)
+    lab_merged = cv2.merge([normalized_l, a, b])
 
-    return normalized_img
+    normalized_rgb = cv2.cvtColor(lab_merged, cv2.COLOR_LAB2BGR)
+
+    return normalized_rgb
 
 
 def lab_channel_normalization(generated_img, ground_truth_img):
@@ -540,7 +536,7 @@ if __name__ == "__main__":
     orig_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\orig_ihc'
     he_to_ihc_folder_path = r'D:\FIIT\Bachelor-s-thesis\Dataset\\results_cut\\run_4x\\he_to_ihc'
 
-    calculate(orig_he_folder_path, ihc_to_he_folder_path, "HE")
+    calculate(orig_he_folder_path, ihc_to_he_folder_path, "H&E")
     calculate(orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
 
 

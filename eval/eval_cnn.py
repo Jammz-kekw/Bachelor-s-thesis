@@ -1,7 +1,7 @@
-# TODO - toto este pozriet asi prepisat, pripadne zobrat len model z novej cnn a zbehnut na nom testy
-
 import numpy as np
+import matplotlib.pyplot as plt
 import torch
+import torchvision.transforms as transforms
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 from sklearn.model_selection import train_test_split
@@ -9,13 +9,14 @@ from sklearn.model_selection import train_test_split
 from new_cnn_test import CustomDataset, CNN, load_data, preprocess_images, sort_by_labels_and_normalize
 
 
-def evaluate_predictions(model, dataloader):
+def evaluate_predictions(model, dataloader, device):
+    model.eval()
     all_predictions = []
     all_labels = []
 
     with torch.no_grad():
         for images, labels in dataloader:
-            images = images.to(device)
+            images, labels = images.to(device), labels.to(device)
             predictions = model(images)
             all_predictions.append(predictions)
             all_labels.append(labels)
@@ -24,26 +25,23 @@ def evaluate_predictions(model, dataloader):
 
 def metrics(predictions, labels):
     # Convert predictions and labels to numpy arrays
-    predictions_np = predictions.cpu().numpy()
-    labels_np = labels.cpu().numpy()
+    predictions_np = predictions.detach().cpu().numpy()
+    labels_np = labels.detach().cpu().numpy()
 
-    # Reshape predictions and labels to (N, C, H, W) where N is the number of samples
-    predictions_np = predictions_np.reshape(-1, predictions_np.shape[-3], predictions_np.shape[-2],
-                                            predictions_np.shape[-1])
-    labels_np = labels_np.reshape(-1, labels_np.shape[-3], labels_np.shape[-2], labels_np.shape[-1])
+    # Convert predictions to class labels
+    predicted_classes = torch.argmax(predictions, dim=1)
 
-    # Reshape to (N, H, W) and convert to class labels
-    predictions_np = np.argmax(predictions_np, axis=1)
-    labels_np = np.argmax(labels_np, axis=1)
+    # Convert predicted classes to numpy array
+    predicted_classes_np = predicted_classes.detach().cpu().numpy()
 
     # Calculate accuracy
-    accuracy = accuracy_score(labels_np.flatten(), predictions_np.flatten())
+    accuracy = accuracy_score(labels_np, predicted_classes_np)
     print("Accuracy:", accuracy)
 
     # Calculate precision, recall, and F1-score
-    precision = precision_score(labels_np.flatten(), predictions_np.flatten(), average='weighted')
-    recall = recall_score(labels_np.flatten(), predictions_np.flatten(), average='weighted')
-    f1 = f1_score(labels_np.flatten(), predictions_np.flatten(), average='weighted')
+    precision = precision_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
+    recall = recall_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
+    f1 = f1_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
 
     print("Precision:", precision)
     print("Recall:", recall)
@@ -51,46 +49,41 @@ def metrics(predictions, labels):
 
 
 if __name__ == '__main__':
-    test_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\sliced\\IHC_test"
-    gan_gen_dir = "D:\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\he_to_ihc"
+    test_dir = r"D:\FIIT\\Bachelor-s-thesis\\Dataset\\sliced\\IHC_test"
+    gan_gen_dir = r"D:\FIIT\\Bachelor-s-thesis\\Dataset\\results_cut\\run_4x\\he_to_ihc"
 
     model = CNN()
-    model.load_state_dict(torch.load('cnn_models/new_model_L2_flip.pth'))
+    model.load_state_dict(torch.load('cnn_models/best_model.pth'))
     model.eval()
 
-    images, labels = load_data(test_dir)
+    images, labels = load_data(test_dir, max_images=15632)
     images = preprocess_images(images)
     images = sort_by_labels_and_normalize(images, labels)
 
-    test_dataset = CustomDataset(images, labels)
-    batch_size = 16
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+
+    test_dataset = CustomDataset(images, labels, transform=transform)
+    test_loader = DataLoader(test_dataset, batch_size=32)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    predictions, labels = evaluate_predictions(model, test_dataloader)
+    predictions, labels = evaluate_predictions(model, test_loader, device)
 
     metrics(predictions, labels)
 
-    gan_data = CustomDataset(gan_gen_dir)
-    gan_dataloader = DataLoader(gan_data, batch_size=batch_size, shuffle=False)
+    images_gan, labels_gan = load_data(gan_gen_dir)
+    images_gan = preprocess_images(images_gan)
 
-    model.eval()
-    gan_predictions = []
+    gan_dataset = CustomDataset(images=images_gan, transform=transform)
+    gan_dataloader = DataLoader(gan_dataset, batch_size=32, shuffle=False)
+    gan_predictions_model, gan_labels = evaluate_predictions(model, gan_dataloader, device)
 
-    with torch.no_grad():
-        for image in gan_dataloader:
-            image, _ = image
-            image = image.to(device)
-            gan_prediction = model(image)
-            gan_predictions.append(gan_prediction)
+    gan_predicted_labels = torch.argmax(gan_predictions_model, dim=1)
+    gan_predicted_labels_np = gan_predicted_labels.cpu().numpy()
 
-    gan_predictions = torch.cat(gan_predictions, dim=0)
-
-    # print(gan_predictions)
-
-    probs = torch.softmax(gan_predictions, dim=1)
-    labels_gan = torch.argmax(probs, dim=1)
-
-    labels_gan_float = labels_gan.float()
-    image_labels = torch.mean(labels_gan_float, dim=(1, 2))
+    plt.imshow(images_gan[25])
+    plt.axis('off')
+    plt.title(f'Predikovaná HER2 úroveň: {gan_predicted_labels_np[25]}')
+    plt.show()
