@@ -9,7 +9,13 @@ from sklearn.model_selection import train_test_split
 from new_cnn_test import CustomDataset, CNN, load_data, preprocess_images, sort_by_labels_and_normalize
 
 
-def evaluate_predictions(model, dataloader, device):
+def get_predictions(model, dataloader, device):
+    """
+        Used to get the predictions from trained model
+
+
+    """
+
     model.eval()
     all_predictions = []
     all_labels = []
@@ -24,25 +30,21 @@ def evaluate_predictions(model, dataloader, device):
 
 
 def metrics(predictions, labels):
-    # Convert predictions and labels to numpy arrays
-    predictions_np = predictions.detach().cpu().numpy()
+    """
+        Used to calculate the statistic metrics
+
+    """
+
     labels_np = labels.detach().cpu().numpy()
-
-    # Convert predictions to class labels
     predicted_classes = torch.argmax(predictions, dim=1)
-
-    # Convert predicted classes to numpy array
     predicted_classes_np = predicted_classes.detach().cpu().numpy()
 
-    # Calculate accuracy
     accuracy = accuracy_score(labels_np, predicted_classes_np)
-    print("Accuracy:", accuracy)
-
-    # Calculate precision, recall, and F1-score
     precision = precision_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
     recall = recall_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
     f1 = f1_score(labels_np, predicted_classes_np, average='weighted', zero_division=0)
 
+    print("Accuracy:", accuracy)
     print("Precision:", precision)
     print("Recall:", recall)
     print("F1 Score:", f1)
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     model.load_state_dict(torch.load('cnn_models/best_model.pth'))
     model.eval()
 
-    images, labels = load_data(test_dir, max_images=15632)
+    images, labels = load_data(test_dir, max_images=100)
     images = preprocess_images(images)
     images = sort_by_labels_and_normalize(images, labels)
 
@@ -69,7 +71,7 @@ if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    predictions, labels = evaluate_predictions(model, test_loader, device)
+    predictions, labels = get_predictions(model, test_loader, device)
 
     metrics(predictions, labels)
 
@@ -78,12 +80,12 @@ if __name__ == '__main__':
 
     gan_dataset = CustomDataset(images=images_gan, transform=transform)
     gan_dataloader = DataLoader(gan_dataset, batch_size=32, shuffle=False)
-    gan_predictions_model, gan_labels = evaluate_predictions(model, gan_dataloader, device)
+    gan_predictions_model, gan_labels = get_predictions(model, gan_dataloader, device)
 
     gan_predicted_labels = torch.argmax(gan_predictions_model, dim=1)
     gan_predicted_labels_np = gan_predicted_labels.cpu().numpy()
 
-    plt.imshow(images_gan[25])
+    plt.imshow(images_gan[17])
     plt.axis('off')
-    plt.title(f'Predikovaná HER2 úroveň: {gan_predicted_labels_np[25]}')
+    plt.title(f'Predikovaná HER2 úroveň: {gan_predicted_labels_np[17]}')
     plt.show()

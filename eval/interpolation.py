@@ -13,7 +13,7 @@ def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 25
 
 def color_correction(source, target):  # source - image to correct; target - correction template
     """
-        Prevzatý kód
+        Prevzatý kód - FIIT STU - Neurónové siete
     """
 
     """

@@ -1,5 +1,4 @@
 from scipy import stats
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,11 +16,11 @@ def descriptive_analysis(data, tag, metric):
     """
 
     if metric == 'bha':
-        title = "Bhattacharyya distance"
+        title = "Bhattacharyya vzdialenosť"
     elif metric == 'mt':
-        title = "Mutual information"
+        title = "Kullback-Leiberova divergencia"
     else:
-        title = "Correlation"
+        title = "Korelácia"
 
     mean_value = np.mean(data)
     std_dev = np.std(data)
@@ -31,7 +30,7 @@ def descriptive_analysis(data, tag, metric):
     q1, q2, q3 = np.percentile(data, [25, 50, 75])
 
     print("Priemer:", mean_value)
-    print("Štandartná odchýlka:", std_dev)
+    print("Smerodajná odchýlka:", std_dev)
     print("Minimum:", min_value)
     print("Maximum:", max_value)
     print("Medián:", median_value)
@@ -55,11 +54,11 @@ def comparison_analysis(before, after, metric):
     """
 
     if metric == 'bha':
-        title = "Bhattacharyya distance"
+        title = "Bhattacharyya vzdialenosť"
     elif metric == 'mt':
-        title = "Mutual information"
+        title = "Kullback-Leiberova divergencia"
     else:
-        title = "Correlation"
+        title = "Korelácia"
 
     mean_before = np.mean(before)
     mean_after = np.mean(after)
@@ -83,16 +82,16 @@ def comparison_analysis(before, after, metric):
     plt.show()
 
     print(f"Deskriptívna štatistika {title}:")
-    print("Pred normalizáciou - Priemer:", mean_before, " Štandartná odchýlka:", std_before)
-    print("After Normalization - Mean:", mean_after, " Štandarstná odchýlka:", std_after, "\n")
+    print("Pred normalizáciou - Priemer:", mean_before, " Smerodajná odchýlka:", std_before)
+    print("After Normalization - Mean:", mean_after, " Smerodajná odchýlka:", std_after, "\n")
 
 
 def statistic_tests(before, after, metric):
     """
         Runs t-test to prove if there was change in data
 
-        H0 -  Bhattacharyya / Correlation after normalization is NOT significantly different from before normalization
-        H1 -  Bhattacharyya / Correlation after normalization is significantly different from before normalization
+        H0 -  Bhattacharyya / Correlation / MT info after normalization is NOT significantly different from before normalization
+        H1 -  Bhattacharyya / Correlation / MT info after normalization is significantly different from before normalization
 
     """
 
@@ -222,10 +221,20 @@ if __name__ == '__main__':
         Run quantitative analysis
     """
 
+    # run_analysis(he_gen_mt_info, he_norm_mt_info, 'HE gen mt info', 'HE norm mt info', 'mt')
     # run_analysis(he_gen_mt_info, he_inter_mt_info, 'HE gen mt info', 'HE inter mt info', 'mt')
+
+    # run_analysis(ihc_gen_mt_info, ihc_norm_mt_info, 'HE gen mt info', 'IHC norm mt info', 'mt')
     # run_analysis(ihc_gen_mt_info, ihc_inter_mt_info, 'IHC gen mt info', 'IHC inter mt info', 'mt')
 
-    # run_analysis(he_gen_mt_info, he_norm_mt_info, 'HE gen mt info', 'HE norm mt info', 'mt')
-    # run_analysis(ihc_gen_mt_info, ihc_norm_mt_info, 'HE gen mt info', 'IHC norm mt info', 'mt')
+    # run_analysis(he_lab_bha, he_lab_norm_bha, 'HE generované Bhattacharyya', 'HE posun L histogramu Bhattacharyya', 'bha')
+    # run_analysis(he_lab_bha, he_lab_inter_bha, 'HE generované Bhattacharyya', 'HE interpolácia Bhattacharyya', 'bha')
 
-    run_analysis(he_lab_bha, he_lab_norm_bha, 'HE generované Bhattacharyya', 'HE normalizované Bhattacharyya', 'bha')
+    # run_analysis(ihc_lab_bha, ihc_lab_norm_bha, 'IHC generované Bhattacharyya', 'IHC posun L histogramu Bhattacharyya', 'bha')
+    # run_analysis(ihc_lab_bha, ihc_lab_inter_bha, 'IHC generované Bhattacharyya', 'IHC interpolácia Bhattacharyya', 'bha')
+
+    # run_analysis(he_lab_cor, he_lab_norm_cor, 'HE generované Korelácia', 'HE posun L histogramu Korelácia', 'cor')
+    # run_analysis(he_lab_cor, he_lab_inter_cor, 'HE generované Korelácia', 'HE interpolácia Korelácia', 'cor')
+
+    # run_analysis(ihc_lab_cor, ihc_lab_norm_cor, 'IHC generované Korelácia', 'IHC posun L histogramu Korelácia', 'cor')
+    # run_analysis(ihc_lab_cor, ihc_lab_inter_cor, 'IHC generované Korelácia', 'IHC interpolácia Korelácia', 'cor')

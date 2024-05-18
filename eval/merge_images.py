@@ -55,10 +55,10 @@ def merge_images_name(image1_path, image2_path, name, text1, text2):
 
 def merge_three_images_name(image1_path, image2_path, image3_path, name, text1, text2, text3):
     """
-    Merges three images together with a separator in between
-    also puts a label to each image for better reading
+        Merges three images together with a separator in between
+        also puts a label to each image for better reading
 
-    was created for the Google form
+        was created for the Google form
     """
 
     image1 = cv2.imread(image1_path)

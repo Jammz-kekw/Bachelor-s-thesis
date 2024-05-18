@@ -232,6 +232,7 @@ if __name__ == "__main__":
     early_stopping_patience = 10
     early_stopping_counter = 0
 
+    # Training of the CNN
     num_epochs = 50
     for epoch in range(num_epochs):
         model.train()
@@ -248,6 +249,7 @@ if __name__ == "__main__":
         epoch_loss = running_loss / len(train_loader)
         print(f"Epoch [{epoch + 1}/{num_epochs}], Train Loss: {epoch_loss}")
 
+        # Evaluation of model mid-training
         model.eval()
         val_loss = 0.0
         correct = 0

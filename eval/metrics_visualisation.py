@@ -2,7 +2,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
-from new_cnn_test import get_mean
 
 
 def calculate_histogram(image, channels=[0, 1, 2], histSize=[256], ranges=[0, 256]):
@@ -55,26 +54,20 @@ def get_mutual_information(original_image, generated_image):
 
     """
 
-    original_image = cv2.cvtColor(original_image, cv2.COLOR_LAB2BGR)  # LAB was input
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_LAB2BGR)
     generated_image = cv2.cvtColor(generated_image, cv2.COLOR_LAB2BGR)
 
-    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)  # to grayscale
+    original_image = cv2.cvtColor(original_image, cv2.COLOR_BGR2GRAY)
     generated_image = cv2.cvtColor(generated_image, cv2.COLOR_BGR2GRAY)
 
     original_histogram = cv2.calcHist([original_image], [0], None, [256], [0, 256])
     generated_histogram = cv2.calcHist([generated_image], [0], None, [256], [0, 256])
 
-    joint_histogram = np.histogram2d(original_image.ravel(), generated_image.ravel(), bins=256, range=[[0, 256], [0, 256]])[0]
-
-    marginal_orig_hist = np.sum(joint_histogram, axis=0)
-    marginal_gen_hist = np.sum(joint_histogram, axis=1)
-
     original_histogram /= np.sum(original_histogram)
     generated_histogram /= np.sum(generated_histogram)
-    joint_histogram /= np.sum(joint_histogram)
 
     epsilon = np.finfo(float).eps
-    mutual_information = np.sum(joint_histogram * np.log((joint_histogram + epsilon) / (np.outer(original_histogram, marginal_gen_hist) + epsilon)))
+    mutual_information = np.sum(original_histogram * np.log((original_histogram + epsilon) / (generated_histogram + epsilon)))
 
     return mutual_information
 
@@ -417,10 +410,6 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         normalized_lab = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2LAB)
         normalized_rgb_save = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
 
-        # if stain_type == 'HE':
-        #     cv2.imwrite(f"D:\FIIT\Bachelor-s-thesis\Dataset\\normalized\HE\HE_{image_no}_normalized.png", normalized_rgb_save)
-        # else:
-        #     cv2.imwrite(f"D:\FIIT\Bachelor-s-thesis\Dataset\\normalized\IHC\IHC_{image_no}_normalized.png", normalized_rgb_save)
 
         interpolation_rgb = color_correction(generated_rgb, original_rgb)
         interpolation_lab = cv2.cvtColor(interpolation_rgb, cv2.COLOR_RGB2LAB)
@@ -439,76 +428,76 @@ def run_pairs(original_files, generated_files, original_path, generated_path, st
         generated_rgb = cv2.cvtColor(generated_rgb, cv2.COLOR_BGR2RGB)
         normalized_rgb = cv2.cvtColor(normalized_rgb, cv2.COLOR_BGR2RGB)
 
-        visualise(original_rgb, generated_rgb, normalized_rgb,
-                  generated_bha, normalized_bha, tag, 'bha', 'norm')
-
-        visualise(original_rgb, generated_rgb, normalized_rgb,
-                  generated_cor, normalized_cor, tag, 'cor', 'norm')
-
-        visualise(original_rgb, generated_rgb, interpolation_rgb,
-                  generated_bha, interpolation_bha, tag, 'bha', 'inter')
-
-        visualise(original_rgb, generated_rgb, interpolation_rgb,
-                  generated_cor, interpolation_cor, tag, 'cor', 'inter')
+        # visualise(original_rgb, generated_rgb, normalized_rgb,
+        #           generated_bha, normalized_bha, tag, 'bha', 'norm')
+        #
+        # visualise(original_rgb, generated_rgb, normalized_rgb,
+        #           generated_cor, normalized_cor, tag, 'cor', 'norm')
+        #
+        # visualise(original_rgb, generated_rgb, interpolation_rgb,
+        #           generated_bha, interpolation_bha, tag, 'bha', 'inter')
+        #
+        # visualise(original_rgb, generated_rgb, interpolation_rgb,
+        #           generated_cor, interpolation_cor, tag, 'cor', 'inter')
 
         # Add means
-        # gen_l_mean_bha.append(np.mean(generated_bha[0]))
-        # gen_a_mean_bha.append(np.mean(generated_bha[1]))
-        # gen_b_mean_bha.append(np.mean(generated_bha[2]))
-        #
-        # norm_l_mean_bha.append(np.mean(normalized_bha[0]))
-        # norm_a_mean_bha.append(np.mean(normalized_bha[1]))
-        # norm_b_mean_bha.append(np.mean(normalized_bha[2]))
-        #
-        # gen_l_mean_cor.append(np.mean(generated_cor[0]))
-        # gen_a_mean_cor.append(np.mean(generated_cor[1]))
-        # gen_b_mean_cor.append(np.mean(generated_cor[2]))
-        #
-        # norm_l_mean_cor.append(np.mean(normalized_cor[0]))
-        # norm_a_mean_cor.append(np.mean(normalized_cor[1]))
-        # norm_b_mean_cor.append(np.mean(normalized_cor[2]))
-        #
-        # inter_l_mean_bha.append(np.mean(interpolation_bha[0]))
-        # inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
-        # inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
-        #
-        # inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
-        # inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
-        # inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
-        #
-        # gen_mutual_info.append(gen_mt_info)
-        # norm_mutual_info.append(norm_mt_info)
-        # inter_mutual_info.append(inter_mt_info)
+        gen_l_mean_bha.append(np.mean(generated_bha[0]))
+        gen_a_mean_bha.append(np.mean(generated_bha[1]))
+        gen_b_mean_bha.append(np.mean(generated_bha[2]))
+
+        norm_l_mean_bha.append(np.mean(normalized_bha[0]))
+        norm_a_mean_bha.append(np.mean(normalized_bha[1]))
+        norm_b_mean_bha.append(np.mean(normalized_bha[2]))
+
+        gen_l_mean_cor.append(np.mean(generated_cor[0]))
+        gen_a_mean_cor.append(np.mean(generated_cor[1]))
+        gen_b_mean_cor.append(np.mean(generated_cor[2]))
+
+        norm_l_mean_cor.append(np.mean(normalized_cor[0]))
+        norm_a_mean_cor.append(np.mean(normalized_cor[1]))
+        norm_b_mean_cor.append(np.mean(normalized_cor[2]))
+
+        inter_l_mean_bha.append(np.mean(interpolation_bha[0]))
+        inter_a_mean_bha.append(np.mean(interpolation_bha[1]))
+        inter_b_mean_bha.append(np.mean(interpolation_bha[2]))
+
+        inter_l_mean_cor.append(np.mean(interpolation_cor[0]))
+        inter_a_mean_cor.append(np.mean(interpolation_cor[1]))
+        inter_b_mean_cor.append(np.mean(interpolation_cor[2]))
+
+        gen_mutual_info.append(gen_mt_info)
+        norm_mutual_info.append(norm_mt_info)
+        inter_mutual_info.append(inter_mt_info)
 
     # Save
-    # np.save(f'4x_mean_new//{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_L_inter_bha.npy', inter_l_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
-    # np.save(f'4x_mean_new//{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
-    # np.save(f'4x_mean_new//{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
-    #
-    # np.save(f'4x_mean_new//{stain_type}_gen_mt_info.npy', gen_mutual_info)
-    # np.save(f'4x_mean_new//{stain_type}_norm_mt_info.npy', norm_mutual_info)
-    # np.save(f'4x_mean_new//{stain_type}_inter_mt_info.npy', inter_mutual_info)
-    print('saved')
+    np.save(f'4x_mean_new//{stain_type}_L_gen_bha.npy', gen_l_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_A_gen_bha.npy', gen_a_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_B_gen_bha.npy', gen_b_mean_bha)
+
+    np.save(f'4x_mean_new//{stain_type}_L_norm_bha.npy', norm_l_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_A_norm_bha.npy', norm_a_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_B_norm_bha.npy', norm_b_mean_bha)
+
+    np.save(f'4x_mean_new//{stain_type}_L_gen_cor.npy', gen_l_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_A_gen_cor.npy', gen_a_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_B_gen_cor.npy', gen_b_mean_cor)
+
+    np.save(f'4x_mean_new//{stain_type}_L_norm_cor.npy', norm_l_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_A_norm_cor.npy', norm_a_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_B_norm_cor.npy', norm_b_mean_cor)
+
+    np.save(f'4x_mean_new//{stain_type}_L_inter_bha.npy', inter_l_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_A_inter_bha.npy', inter_a_mean_bha)
+    np.save(f'4x_mean_new//{stain_type}_B_inter_bha.npy', inter_b_mean_bha)
+
+    np.save(f'4x_mean_new//{stain_type}_L_inter_cor.npy', inter_l_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_A_inter_cor.npy', inter_a_mean_cor)
+    np.save(f'4x_mean_new//{stain_type}_B_inter_cor.npy', inter_b_mean_cor)
+
+    np.save(f'4x_mean_new//{stain_type}_gen_mt_info.npy', gen_mutual_info)
+    np.save(f'4x_mean_new//{stain_type}_norm_mt_info.npy', norm_mutual_info)
+    np.save(f'4x_mean_new//{stain_type}_inter_mt_info.npy', inter_mutual_info)
+    print('Saved')
 
 
 if __name__ == '__main__':
@@ -524,7 +513,7 @@ if __name__ == '__main__':
     orig_ihc_files = os.listdir(orig_ihc_folder_path)
     he_to_ihc_files = os.listdir(he_to_ihc_folder_path)
 
-    # run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
+    run_pairs(orig_he_files, ihc_to_he_files, orig_he_folder_path, ihc_to_he_folder_path, "HE")
 
     run_pairs(orig_ihc_files, he_to_ihc_files, orig_ihc_folder_path, he_to_ihc_folder_path, "IHC")
 
